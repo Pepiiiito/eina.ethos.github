@@ -20,8 +20,8 @@ const COOKIE_SECURE = env('COOKIE_SECURE', 'auto'); // auto | true | false
 const TRUST_PROXY = env('TRUST_PROXY', 'false') === 'true';
 const PRICES = { [env('STRIPE_PRICE_CREADOR')]: 'creador', [env('STRIPE_PRICE_PRO')]: 'pro' };
 const LINKS = {
-  creador: env('STRIPE_LINK_CREADOR', 'https://buy.stripe.com/28E6oAaXW50A4qTeqTco008'),
-  pro: env('STRIPE_LINK_PRO', 'https://buy.stripe.com/14A3cofecakU7D52Ibco007'),
+  creador: env('STRIPE_LINK_CREADOR'),
+  pro: env('STRIPE_LINK_PRO'),
 };
 if (!SESSION_SECRET || SESSION_SECRET.length < 32) { console.error('Falta SESSION_SECRET (mín. 32 caracteres).'); process.exit(1); }
 
@@ -192,7 +192,7 @@ async function route(req, res) {
     if (!u) return send(res, 401, { error: 'Inicia sesión' });
 
     if (req.method === 'POST' && url.pathname === '/api/checkout') {
-      const { plan } = await readJson(req); if (!LINKS[plan]) return send(res, 400, { error: 'Plan no válido' });
+      const { plan } = await readJson(req); if (!LINKS[plan]) return send(res, 400, { error: 'Plan no válido o pago no configurado en el servidor' });
       const l = new URL(LINKS[plan]); l.searchParams.set('client_reference_id', String(u.id)); l.searchParams.set('prefilled_email', u.email);
       return send(res, 200, { url: l.toString() });
     }
