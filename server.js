@@ -19,6 +19,7 @@ const AI_MONTHLY = +env('AI_MONTHLY_LIMIT', 300);
 const COOKIE_SECURE = env('COOKIE_SECURE', 'auto'); // auto | true | false
 const TRUST_PROXY = env('TRUST_PROXY', 'false') === 'true';
 const MAIL_KEY = env('RESEND_API_KEY'), MAIL_FROM = env('MAIL_FROM'), APP_URL = env('APP_URL').replace(/\/$/, '');
+const STRIPE_KEY = env('STRIPE_SECRET_KEY'), PORTAL_LINK = env('STRIPE_PORTAL_LINK'), STRIPE_API = env('STRIPE_API_BASE', 'https://api.stripe.com');
 const mailOn = !!(MAIL_KEY && MAIL_FROM); // sin esto no se envían correos (los enlaces salen en los logs del servidor)
 const PRICES = { [env('STRIPE_PRICE_CREADOR')]: 'creador', [env('STRIPE_PRICE_PRO')]: 'pro' };
 const LINKS = {
@@ -251,6 +252,23 @@ async function route(req, res) {
     const u = getUser(req);
     if (!u) return send(res, 401, { error: 'Inicia sesión' });
 
+    // Gestionar / cancelar suscripción: portal de clientes de Stripe (la baja llega luego por webhook)
+    if (req.method === 'POST' && url.pathname === '/api/billing-portal') {
+      if (u.plan === 'free') return send(res, 400, { error: 'No tienes ninguna suscripción activa.' });
+      if (STRIPE_KEY && u.stripe_customer_id) {
+        try {
+          const r = await fetch(`${STRIPE_API}/v1/billing_portal/sessions`, { method: 'POST', signal: AbortSignal.timeout(15000),
+            headers: { Authorization: `Bearer ${STRIPE_KEY}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ customer: u.stripe_customer_id, return_url: base + '/' }) });
+          const d = await r.json();
+          if (!r.ok || !d.url) throw new Error(`stripe ${r.status} ${d.error?.message || ''}`);
+          return send(res, 200, { url: d.url });
+        } catch (e) { console.error('PORTAL:', e.message); }
+      }
+      if (PORTAL_LINK) { const l = new URL(PORTAL_LINK); l.searchParams.set('prefilled_email', u.email); return send(res, 200, { url: l.toString() }); }
+      return send(res, 503, { error: 'La gestión de la suscripción no está configurada todavía. Escríbenos y la cancelamos por ti.' });
+    }
+
     if (req.method === 'POST' && url.pathname === '/api/verify/resend') {
       if (u.email_verified) return send(res, 200, { ok: true });
       if (!rateLimit('vr:' + u.id, 3, 6e5)) return send(res, 429, { error: 'Espera unos minutos antes de pedir otro correo.' });
@@ -291,10 +309,11 @@ async function route(req, res) {
     return send(res, 404, { error: 'No encontrado' });
   }
 
-  // Estáticos: SOLO index.html (carpeta plana: nunca se sirve server.js, .env ni la base de datos)
-  if (url.pathname !== '/' && url.pathname !== '/index.html') return send(res, 404, 'No encontrado');
-  const file = path.join(__dirname, 'index.html');
-  if (!fs.existsSync(file)) return send(res, 404, 'Falta index.html junto a server.js');
+  // Estáticos: SOLO estas páginas (carpeta plana: nunca se sirve server.js, .env ni la base de datos)
+  const PAGES = { '/': 'index.html', '/index.html': 'index.html', '/legal': 'legal.html', '/legal.html': 'legal.html' };
+  if (!PAGES[url.pathname]) return send(res, 404, 'No encontrado');
+  const file = path.join(__dirname, PAGES[url.pathname]);
+  if (!fs.existsSync(file)) return send(res, 404, 'Falta ' + PAGES[url.pathname] + ' junto a server.js');
   res.writeHead(200, { 'Content-Type': MIME['.html'], 'X-Content-Type-Options': 'nosniff' });
   fs.createReadStream(file).pipe(res);
 }
