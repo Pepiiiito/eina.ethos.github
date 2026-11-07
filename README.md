@@ -37,3 +37,9 @@ Una web estática (GitHub Pages, Netlify sin funciones, etc.) NO sirve: no puede
 3. Variables de entorno: las de `.env.example` (SESSION_SECRET, STRIPE_*, GEMINI_API_KEY, TRUST_PROXY=true).
 4. Añade un disco persistente montado en `/data` y pon `DB_PATH=/data/ethos.db`. Sin disco, SQLite se borra en cada reinicio.
 5. Webhook de Stripe: `https://TU_DOMINIO/api/stripe/webhook`.
+
+## Correo: verificar cuenta y recuperar contraseña
+- Usa Resend (resend.com, plan gratis): crea cuenta, añade y verifica tu dominio (te da registros DNS) y crea una API key.
+- Variables en Render: `RESEND_API_KEY`, `MAIL_FROM` (ej. `Ethos <no-reply@ethosfakechats.com>`) y `APP_URL` (ej. `https://ethosfakechats.com`).
+- Sin esas variables la app funciona igual, pero no envía correos: los enlaces salen en los Logs del servidor.
+- Al cambiar la contraseña se cierran todas las sesiones anteriores.
