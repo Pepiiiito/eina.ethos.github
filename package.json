@@ -1,0 +1,11 @@
+{
+  "name": "ethos-chat-studio",
+  "version": "2.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env --no-warnings server.js"
+  }
+}

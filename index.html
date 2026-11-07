@@ -1,0 +1,2318 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-[#0a0a0a] text-neutral-100">
+<head>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id=%22g%22%20x1=%220%22%20y1=%221%22%20x2=%221%22%20y2=%220%22%3E%3Cstop%20offset=%220%22%20stop-color=%22%23b91c1c%22/%3E%3Cstop%20offset=%22.55%22%20stop-color=%22%23dc2626%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22%23f43f5e%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width=%2264%22%20height=%2264%22%20rx=%2215%22%20fill=%22url%28%23g%29%22/%3E%3Cpath%20fill=%22%23fff%22%20d=%22M20%2015h25v7.5H28.5v6.5h14.5v7H28.5v6.5H45V50H20z%22/%3E%3C/svg%3E">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ethos Chat Studio - SaaS Pro Edition</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              dark: '#0a0a0a',
+              card: '#121212',
+              cardHover: '#1a1a1a',
+              border: '#262626',
+              red: '#dc2626',
+              redBright: '#ff2e2e',
+              redDark: '#991b1b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- html2canvas para exportación HD/4K -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    /* Custom Ethos Dark Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0a0a0a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #262626;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #dc2626;
+    }
+
+    /* Instagram Ring */
+    .story-ring {
+      background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+      padding: 2px;
+      border-radius: 9999px;
+    }
+
+    /* Phone Shadow & Red Glow */
+    .phone-shadow {
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95), 0 0 35px -5px rgba(220, 38, 38, 0.25), 0 0 0 2px #262626;
+    }
+
+    /* Typing Dots Animation */
+    @keyframes typingPulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
+    .dot-pulse-1 { animation: typingPulse 1.2s infinite 0s; }
+    .dot-pulse-2 { animation: typingPulse 1.2s infinite 0.2s; }
+    .dot-pulse-3 { animation: typingPulse 1.2s infinite 0.4s; }
+
+    /* Audio Soundwave Animation */
+    @keyframes wavePulse {
+      0%, 100% { height: 20%; }
+      50% { height: 100%; }
+    }
+    .wave-bar {
+      display: inline-block;
+      width: 3px;
+      background-color: currentColor;
+      border-radius: 9999px;
+    }
+    .wave-playing .wave-bar:nth-child(1) { animation: wavePulse 1s ease-in-out infinite 0.1s; }
+    .wave-playing .wave-bar:nth-child(2) { animation: wavePulse 1s ease-in-out infinite 0.3s; }
+    .wave-playing .wave-bar:nth-child(3) { animation: wavePulse 1s ease-in-out infinite 0.2s; }
+    .wave-playing .wave-bar:nth-child(4) { animation: wavePulse 1s ease-in-out infinite 0.4s; }
+    .wave-playing .wave-bar:nth-child(5) { animation: wavePulse 1s ease-in-out infinite 0.15s; }
+
+    /* Watermark Overlay */
+    .watermark-overlay {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-size: 17px;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.55);
+      letter-spacing: 2px;
+      pointer-events: none;
+      z-index: 40;
+      text-transform: uppercase;
+      background: rgba(0, 0, 0, 0.55);
+      padding: 7px 18px;
+      border-radius: 12px;
+      backdrop-filter: blur(2px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    /* iOS Style Smooth Physics */
+    @keyframes slideUpFade {
+      0% { opacity: 0; transform: translateY(12px) scale(0.98); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .msg-animate {
+      animation: slideUpFade 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col bg-[#0a0a0a] text-neutral-100 font-sans antialiased selection:bg-red-600 selection:text-white">
+
+  <!-- HEADER PRINCIPAL ETHOS STUDIO -->
+  <header class="h-14 border-b border-neutral-800 bg-[#121212]/95 backdrop-blur-md px-3 sm:px-6 flex items-center justify-between z-50 shrink-0 gap-2">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-red-700 via-red-600 to-rose-500 flex items-center justify-center font-black text-white text-base shadow-lg shadow-red-600/30 shrink-0">
+        E
+      </div>
+      <div class="truncate">
+        <h1 class="font-extrabold text-sm sm:text-base tracking-wide flex items-center gap-2 text-white truncate">
+          Ethos Chat Studio
+          <span id="badge-header-plan" class="text-[10px] uppercase font-extrabold bg-neutral-800 text-neutral-400 border border-neutral-700 px-2 py-0.5 rounded-full cursor-pointer hover:bg-neutral-700 transition" onclick="openPricingModal()">
+            Gratis (€0)
+          </span>
+        </h1>
+        <p class="text-[11px] text-neutral-400 hidden lg:block truncate">Plataforma SaaS para Creadores de Shorts & TikTok</p>
+      </div>
+    </div>
+
+    <!-- SECCIÓN DE USUARIOS Y ACCIONES PRINCIPALES -->
+    <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      
+      <!-- Estado del Usuario / Botón de Login -->
+      <div id="user-header-profile" class="flex items-center gap-2 bg-neutral-900 border border-neutral-800 px-2.5 py-1 rounded-xl">
+        <div class="w-6 h-6 rounded-full bg-red-600/30 text-red-400 border border-red-500/40 flex items-center justify-center font-bold text-xs uppercase" id="user-avatar-initial">
+          G
+        </div>
+        <div class="hidden md:flex flex-col text-left leading-tight">
+          <span id="user-display-name" class="text-[11px] font-bold text-white truncate max-w-[100px]">Invitado</span>
+          <span id="user-display-email" class="text-[9px] text-neutral-400 truncate max-w-[100px]">Sin sesión</span>
+        </div>
+        <button id="btn-auth-trigger" onclick="openAuthModal()" class="ml-1 text-xs text-neutral-300 hover:text-white bg-neutral-800 hover:bg-neutral-700 px-2 py-1 rounded-lg border border-neutral-700 transition font-medium">
+          <i class="fa-solid fa-right-to-bracket text-red-500 mr-1"></i> <span id="lbl-auth-btn">Acceder</span>
+        </button>
+      </div>
+
+      <span class="w-px h-5 bg-neutral-800 mx-1 hidden sm:block"></span>
+
+      <!-- Botón Ver Planes / Suscribirse -->
+      <button onclick="openPricingModal()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold bg-gradient-to-r from-amber-500/20 to-red-600/20 text-amber-300 hover:text-amber-200 rounded-xl border border-amber-500/40 transition">
+        <i class="fa-solid fa-gem text-amber-400"></i> <span class="hidden sm:inline">Planes SaaS</span>
+      </button>
+
+      <!-- Guardar / Cargar JSON -->
+      <button onclick="saveProjectJSON()" title="Guardar Proyecto en JSON" class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-lg border border-neutral-700 transition">
+        <i class="fa-solid fa-floppy-disk text-red-400"></i> Guardar
+      </button>
+      <label title="Cargar Proyecto JSON" class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-lg border border-neutral-700 transition cursor-pointer">
+        <i class="fa-solid fa-folder-open text-amber-400"></i> Cargar
+        <input type="file" accept=".json" onchange="loadProjectJSON(event)" class="hidden">
+      </label>
+
+      <!-- Exportar y Copiar -->
+      <button onclick="copyChatImage()" class="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold bg-neutral-800 hover:bg-neutral-700 text-neutral-100 rounded-xl border border-neutral-700 transition active:scale-95">
+        <i class="fa-regular fa-copy"></i> Copiar
+      </button>
+      <button onclick="exportChatImage()" class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 text-[10px] sm:text-xs font-extrabold bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white rounded-xl shadow-lg shadow-red-600/30 transition transform active:scale-95">
+        <i class="fa-solid fa-download"></i> <span id="btn-export-text">Descargar HD</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENEDOR PRINCIPAL DOS COLUMNAS -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- PANEL LATERAL DE CONTROLES (IZQUIERDA) -->
+    <aside class="w-full md:w-[360px] lg:w-[380px] h-full border-r border-neutral-800 bg-[#121212] overflow-y-auto p-4 sm:p-5 flex flex-col gap-5 shrink-0 z-20">
+      
+      <!-- SECCIÓN 1: USUARIO Y CUENTA SAAS -->
+      <div class="bg-neutral-900 rounded-2xl p-3.5 border border-neutral-800 space-y-2 shadow-md">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-extrabold uppercase text-neutral-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-user-shield text-red-500"></i> Mi Suscripción
+          </span>
+          <span id="lbl-user-plan-status" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 border border-neutral-700">
+            Gratis (€0)
+          </span>
+        </div>
+        <p id="lbl-user-plan-desc" class="text-[11px] text-neutral-400">
+          Inicia sesión para vincular tus licencias de Stripe y synchronizar proyectos.
+        </p>
+      </div>
+
+      <!-- SECCIÓN 2: PROMPT IA GEMINI 3 Y SCRIPT PARSER -->
+      <div class="bg-gradient-to-b from-red-950/40 via-neutral-900 to-neutral-900 rounded-2xl p-4 border border-red-600/30 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles text-red-500"></i>
+            Generación IA Gemini 3
+          </label>
+          <span class="text-[10px] bg-red-600/20 text-red-300 px-2 py-0.5 rounded-full font-bold border border-red-600/40">gemini-3-flash</span>
+        </div>
+
+        <p id="ai-usage-note" class="text-[11px] text-neutral-400 leading-snug"><i class="fa-solid fa-lock text-red-500 mr-1"></i>La IA se ejecuta en nuestros servidores y es exclusiva del Plan Pro, con cuota diaria por usuario.</p>
+
+        <!-- Pestañas de Generación -->
+        <div class="flex bg-[#0a0a0a] p-1 rounded-xl border border-neutral-800">
+          <button id="tab-auto-ai" onclick="switchAutoTab('ai')" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-red-600 text-white transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-brain"></i> Prompt IA
+          </button>
+          <button id="tab-auto-script" onclick="switchAutoTab('script')" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-neutral-400 hover:text-neutral-200 transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-file-code"></i> Pegar Guion
+          </button>
+        </div>
+
+        <div id="panel-auto-ai" class="space-y-3">
+          <textarea id="input-ai-prompt" rows="2.5" placeholder="Ej: Una chica descubre en la cena de Nochebuena que el test de ADN revela que su tío es su padre biológico..." class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl p-3 text-xs text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-red-500 resize-none"></textarea>
+          <button id="btn-generate-ai" onclick="generateChatWithAI()" class="w-full py-2.5 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white rounded-xl text-xs font-extrabold transition shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-sparkles"></i> Generar Chat Viral con IA
+          </button>
+        </div>
+
+        <div id="panel-auto-script" class="hidden space-y-3">
+          <textarea id="input-script-text" rows="3.5" placeholder="Sofía: Oye Diego... ¿ya viste el test de ADN?&#10;Diego: No amor, ¿qué pasó? 😂&#10;Sofía: El test dice que mi padre biológico es mi tío Carlos...&#10;Diego: ¡Dios mío! Dime que no dijiste nada." class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl p-3 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-red-500 font-mono resize-none"></textarea>
+          <button onclick="parseScriptToChat()" class="w-full py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl text-xs font-bold border border-neutral-700 transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-bolt text-red-500"></i> Convertir Texto a Chat
+          </button>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 3: PERFILES DÚO (REMITENTE "YO" Y DESTINATARIO) -->
+      <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 space-y-4 shadow-lg">
+        <label class="text-xs font-extrabold uppercase tracking-wider text-neutral-300 flex items-center justify-between">
+          <span>Perfiles Dúo de Conversación</span>
+          <i class="fa-solid fa-users text-red-500"></i>
+        </label>
+
+        <!-- Destinatario ("Él / Ella") -->
+        <div class="bg-[#0a0a0a] p-3 rounded-xl border border-neutral-800 space-y-2">
+          <span class="text-[11px] font-bold text-red-400 block">Perfil Destinatario ("Él / Ella")</span>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="input-profile-name" value="Brandon 💀" oninput="updateProfile()" placeholder="Nombre..." class="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-100 focus:outline-none focus:border-red-500">
+            <input type="text" id="input-profile-status" value="Activo(a) hoy" oninput="updateProfile()" placeholder="Estado..." class="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-100 focus:outline-none focus:border-red-500">
+          </div>
+          <div class="flex gap-1.5 pt-1">
+            <input type="text" id="input-profile-avatar" value="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" onchange="updateProfile()" placeholder="Avatar URL..." class="flex-1 min-w-0 bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-100 focus:outline-none focus:border-red-500">
+            <label class="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-lg text-xs cursor-pointer flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-upload"></i>
+              <input type="file" accept="image/*" onchange="handleAvatarUpload(event, 'them')" class="hidden">
+            </label>
+          </div>
+          <label class="flex items-center gap-2 cursor-pointer text-[11px] text-neutral-300 pt-1">
+            <input type="checkbox" id="check-verified" checked onchange="updateProfile()" class="rounded border-neutral-800 bg-neutral-900 text-red-600 focus:ring-red-600">
+            Check Azul de Verificación
+          </label>
+        </div>
+
+        <!-- Remitente ("Yo") -->
+        <div class="bg-[#0a0a0a] p-3 rounded-xl border border-neutral-800 space-y-2">
+          <span class="text-[11px] font-bold text-sky-400 block">Perfil Remitente ("Yo")</span>
+          <div class="flex gap-1.5">
+            <input type="text" id="input-my-avatar" value="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80" onchange="updateProfile()" placeholder="Avatar URL..." class="flex-1 min-w-0 bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-100 focus:outline-none focus:border-red-500">
+            <label class="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-lg text-xs cursor-pointer flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-upload"></i>
+              <input type="file" accept="image/*" onchange="handleAvatarUpload(event, 'me')" class="hidden">
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 4: PERSONALIZACIÓN DE COLORES Y PRESETS -->
+      <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 space-y-3 shadow-lg">
+        <label class="text-xs font-extrabold uppercase tracking-wider text-amber-400 flex items-center justify-between">
+          <span><i class="fa-solid fa-palette text-amber-500 mr-1.5"></i> Estilos & Color Pickers</span>
+          <span class="text-[10px] text-neutral-400">HEX Sync</span>
+        </label>
+
+        <!-- Presets Rápidos -->
+        <div class="grid grid-cols-4 gap-2 pb-1">
+          <button onclick="applyColorPreset('ig-blue')" class="py-1.5 px-1.5 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-xl text-[10px] font-bold text-sky-400 text-center transition truncate">
+            IG Azul
+          </button>
+          <button onclick="applyColorPreset('ig-gradient')" class="py-1.5 px-1.5 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-xl text-[10px] font-bold text-fuchsia-400 text-center transition truncate">
+            IG Gradiente
+          </button>
+          <button onclick="applyColorPreset('ethos-red')" class="py-1.5 px-1.5 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-xl text-[10px] font-bold text-red-500 text-center transition truncate">
+            Ethos Rojo
+          </button>
+          <button onclick="applyColorPreset('whatsapp-green')" class="py-1.5 px-1.5 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-xl text-[10px] font-bold text-emerald-400 text-center transition truncate">
+            Verde
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-2 border-t border-neutral-800 text-xs">
+          <!-- Burbuja Enviada -->
+          <div>
+            <label class="block text-[11px] text-neutral-300 font-semibold mb-1">Enviada ("Yo")</label>
+            <div class="flex items-center gap-2">
+              <input type="color" id="picker-sent-bg" value="#3797f0" onchange="updateChatColors()" class="w-7 h-7 rounded-lg bg-transparent cursor-pointer border border-neutral-700 shrink-0">
+              <input type="text" id="hex-sent-bg" value="#3797f0" oninput="syncHexColor('sent-bg')" class="w-full min-w-0 bg-[#0a0a0a] border border-neutral-800 rounded-lg px-2 py-1 text-[11px] text-neutral-200">
+            </div>
+          </div>
+
+          <!-- Burbuja Recibida -->
+          <div>
+            <label class="block text-[11px] text-neutral-300 font-semibold mb-1">Recibida</label>
+            <div class="flex items-center gap-2">
+              <input type="color" id="picker-received-bg" value="#262626" onchange="updateChatColors()" class="w-7 h-7 rounded-lg bg-transparent cursor-pointer border border-neutral-700 shrink-0">
+              <input type="text" id="hex-received-bg" value="#262626" oninput="syncHexColor('received-bg')" class="w-full min-w-0 bg-[#0a0a0a] border border-neutral-800 rounded-lg px-2 py-1 text-[11px] text-neutral-200">
+            </div>
+          </div>
+
+          <!-- Texto Enviado -->
+          <div>
+            <label class="block text-[11px] text-neutral-300 font-semibold mb-1">Texto Enviado</label>
+            <div class="flex items-center gap-2">
+              <input type="color" id="picker-sent-text" value="#ffffff" onchange="updateChatColors()" class="w-7 h-7 rounded-lg bg-transparent cursor-pointer border border-neutral-700 shrink-0">
+              <input type="text" id="hex-sent-text" value="#ffffff" oninput="syncHexColor('sent-text')" class="w-full min-w-0 bg-[#0a0a0a] border border-neutral-800 rounded-lg px-2 py-1 text-[11px] text-neutral-200">
+            </div>
+          </div>
+
+          <!-- Texto Recibido -->
+          <div>
+            <label class="block text-[11px] text-neutral-300 font-semibold mb-1">Texto Recibido</label>
+            <div class="flex items-center gap-2">
+              <input type="color" id="picker-received-text" value="#ffffff" onchange="updateChatColors()" class="w-7 h-7 rounded-lg bg-transparent cursor-pointer border border-neutral-700 shrink-0">
+              <input type="text" id="hex-received-text" value="#ffffff" oninput="syncHexColor('received-text')" class="w-full min-w-0 bg-[#0a0a0a] border border-neutral-800 rounded-lg px-2 py-1 text-[11px] text-neutral-200">
+            </div>
+          </div>
+
+          <!-- Fondo del Chat -->
+          <div class="col-span-2">
+            <label class="block text-[11px] text-neutral-300 font-semibold mb-1">Fondo del Chat</label>
+            <div class="flex items-center gap-2">
+              <input type="color" id="picker-canvas-bg" value="#000000" onchange="updateChatColors()" class="w-7 h-7 rounded-lg bg-transparent cursor-pointer border border-neutral-700 shrink-0">
+              <input type="text" id="hex-canvas-bg" value="#000000" oninput="syncHexColor('canvas-bg')" class="w-24 min-w-0 bg-[#0a0a0a] border border-neutral-800 rounded-lg px-2 py-1 text-[11px] text-neutral-200">
+              <span class="text-[10px] text-neutral-500 truncate">Negro puro / Noche</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 5: ANIMACIÓN Y GRABACIÓN DE VÍDEO -->
+      <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 space-y-3 shadow-lg">
+        <label class="text-xs font-extrabold uppercase tracking-wider text-red-400 flex items-center justify-between">
+          <span><i class="fa-solid fa-film text-red-500 mr-1.5"></i> Animación & Vídeo HD</span>
+          <span class="text-[10px] bg-red-600/20 text-red-300 px-2 py-0.5 rounded-full font-bold">60 FPS</span>
+        </label>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button id="btn-play-anim" onclick="toggleAnimationPlayback()" class="py-2.5 bg-red-600 hover:bg-red-500 text-white font-extrabold rounded-xl text-xs transition shadow-lg shadow-red-600/20 flex items-center justify-center gap-1.5">
+            <i id="anim-icon" class="fa-solid fa-play"></i>
+            <span id="anim-btn-text">▶️ Reproducir</span>
+          </button>
+
+          <button id="btn-record-video" onclick="openVideoRecordModal()" class="py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-xl text-xs transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-video"></i>
+            <span id="record-btn-text">🎥 Grabar Vídeo</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="block text-[10px] text-neutral-400 mb-1">Pausa por Mensaje (s)</label>
+            <input type="number" id="input-anim-speed" value="1.8" step="0.2" min="0.5" max="5.0" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-1 text-xs text-neutral-100 focus:outline-none focus:border-red-500">
+          </div>
+          <div class="flex flex-col justify-end">
+            <label class="flex items-center gap-2 cursor-pointer text-xs text-neutral-300">
+              <input type="checkbox" id="check-show-typing" checked class="rounded border-neutral-700 bg-[#0a0a0a] text-red-600 focus:ring-red-600">
+              Simular "Escribiendo..."
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 6: PLATAFORMA Y MODO DE VISTA -->
+      <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 space-y-3 shadow-lg">
+        <label class="text-xs font-extrabold uppercase tracking-wider text-sky-400 flex items-center justify-between">
+          <span>Plataforma & Formato</span>
+          <i class="fa-solid fa-mobile-screen text-sky-500"></i>
+        </label>
+
+        <!-- Red Social -->
+        <div class="grid grid-cols-3 gap-2">
+          <button id="btn-platform-instagram" onclick="setPlatform('instagram')" class="platform-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-red-600 bg-red-600/10 text-white font-semibold text-[11px] transition">
+            <i class="fa-brands fa-instagram text-base text-red-500"></i>
+            Instagram
+          </button>
+          <button id="btn-platform-whatsapp" disabled title="Próximamente" class="platform-btn opacity-40 cursor-not-allowed flex flex-col items-center gap-1 p-2 rounded-xl border border-neutral-700 bg-neutral-800/40 text-neutral-400 hover:text-white font-semibold text-[11px] transition">
+            <i class="fa-brands fa-whatsapp text-base text-emerald-400"></i>
+            WhatsApp <span class="text-[8px] text-amber-400 font-bold">PRONTO</span>
+          </button>
+          <button id="btn-platform-imessage" disabled title="Próximamente" class="platform-btn opacity-40 cursor-not-allowed flex flex-col items-center gap-1 p-2 rounded-xl border border-neutral-700 bg-neutral-800/40 text-neutral-400 hover:text-white font-semibold text-[11px] transition">
+            <i class="fa-solid fa-comment text-base text-blue-400"></i>
+            iMessage <span class="text-[8px] text-amber-400 font-bold">PRONTO</span>
+          </button>
+        </div>
+
+        <!-- Vista del Marco -->
+        <div class="grid grid-cols-3 gap-2 pt-1">
+          <button id="btn-view-phone" onclick="setViewMode('phone')" class="view-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-red-600 bg-red-600/10 text-white font-semibold text-[11px] transition">
+            <i class="fa-solid fa-mobile-screen text-base text-red-500"></i>
+            Marco Móvil
+          </button>
+          <button id="btn-view-expanded" onclick="setViewMode('expanded')" class="view-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-neutral-700 bg-neutral-800/40 text-neutral-400 hover:text-white font-semibold text-[11px] transition">
+            <i class="fa-solid fa-arrows-up-down-left-right text-base text-sky-400"></i>
+            Extendido
+          </button>
+          <button id="btn-view-bubbles" onclick="setViewMode('bubbles')" class="view-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-neutral-700 bg-neutral-800/40 text-neutral-400 hover:text-white font-semibold text-[11px] transition">
+            <i class="fa-solid fa-crop-simple text-base text-red-400"></i>
+            Solo Burbujas
+          </button>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 7: GESTOR Y AÑADIR MENSAJES -->
+      <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 space-y-4 shadow-lg flex-1">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-extrabold uppercase tracking-wider text-neutral-300 flex items-center gap-2">
+            <span>Mensajes del Chat</span>
+            <span id="msg-counter" class="bg-red-600/20 text-red-400 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          </label>
+          <button onclick="clearAllMessages()" class="text-xs text-rose-400 hover:text-rose-300 font-semibold transition flex items-center gap-1">
+            <i class="fa-regular fa-trash-can"></i> Limpiar
+          </button>
+        </div>
+
+        <!-- Formulario AÑADIR MENSAJE -->
+        <div class="bg-[#0a0a0a] rounded-xl p-3 border border-neutral-800 space-y-3">
+          
+          <!-- Seleccionar Tipo -->
+          <div class="flex bg-neutral-900 p-1 rounded-lg border border-neutral-800 text-[11px] font-bold">
+            <button id="btn-type-text" onclick="setNewMsgType('text')" class="flex-1 py-1 rounded-md bg-red-600 text-white transition">Texto</button>
+            <button id="btn-type-audio" onclick="setNewMsgType('audio')" class="flex-1 py-1 rounded-md text-neutral-400 hover:text-neutral-200 transition">Nota Voz</button>
+            <button id="btn-type-image" onclick="setNewMsgType('image')" class="flex-1 py-1 rounded-md text-neutral-400 hover:text-neutral-200 transition">Imagen</button>
+            <button id="btn-type-divider" onclick="setNewMsgType('divider')" class="flex-1 py-1 rounded-md text-neutral-400 hover:text-neutral-200 transition">Fecha</button>
+            <button id="btn-type-seen" onclick="setNewMsgType('seen')" class="flex-1 py-1 rounded-md text-neutral-400 hover:text-neutral-200 transition">Visto</button>
+            <button id="btn-type-missed" onclick="setNewMsgType('missed')" class="flex-1 py-1 rounded-md text-neutral-400 hover:text-neutral-200 transition">Llamada</button>
+          </div>
+
+          <!-- Seleccionar Emisor -->
+          <div id="sender-selector-box" class="flex bg-neutral-900 p-1 rounded-lg border border-neutral-800">
+            <button id="btn-sender-them" onclick="setNewMsgSender('them')" class="flex-1 py-1 text-xs font-bold rounded-md bg-neutral-800 text-neutral-200 transition">Él / Ella (Recibido)</button>
+            <button id="btn-sender-me" onclick="setNewMsgSender('me')" class="flex-1 py-1 text-xs font-bold rounded-md text-neutral-400 hover:text-neutral-200 transition">Yo (Enviado)</button>
+          </div>
+
+          <!-- Inputs según tipo -->
+          <div id="field-text-box">
+            <textarea id="input-new-msg-text" rows="2" placeholder="Escribe el mensaje dramático..." class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-xs text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-red-500 resize-none"></textarea>
+            <input type="text" id="input-new-msg-reply" maxlength="120" placeholder="Responde a... (opcional: cita un mensaje)" class="mt-2 w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-1.5 text-xs text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-red-500">
+          </div>
+
+          <div id="field-image-box" class="hidden space-y-2">
+            <input type="text" id="input-new-msg-img" placeholder="URL de la imagen..." class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-red-500">
+            <label class="w-full py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 border border-neutral-700">
+              <i class="fa-solid fa-upload text-red-500"></i> Subir Imagen
+              <input type="file" accept="image/*" onchange="handleImageMessageUpload(event)" class="hidden">
+            </label>
+          </div>
+
+          <div id="field-audio-box" class="hidden space-y-2 text-xs text-neutral-400">
+            <div class="flex justify-between items-center bg-neutral-900 p-2 rounded-xl border border-neutral-800">
+              <span>Duración nota de voz:</span>
+              <input type="text" id="input-new-msg-audiospec" value="0:14" class="w-16 bg-[#0a0a0a] border border-neutral-800 rounded px-2 py-0.5 text-center font-mono text-white text-xs">
+            </div>
+          </div>
+
+          <button onclick="addMessageFromForm()" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-extrabold transition shadow-lg shadow-red-600/20 flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> Añadir Mensaje
+          </button>
+        </div>
+
+        <!-- Lista de Mensajes Reordenables -->
+        <div id="editor-messages-list" class="space-y-2 max-h-[320px] overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- FOOTER LEGAL DE AGENCIA -->
+      <div class="pt-4 border-t border-neutral-800/80 flex items-center justify-between text-[11px] text-neutral-500">
+        <span>&copy; 2026 Ethos Studio Inc.</span>
+        <div class="flex items-center gap-3">
+          <a href="#" onclick="openLegalModal('terms'); return false;" class="hover:text-neutral-300">Términos</a>
+          <a href="#" onclick="openLegalModal('privacy'); return false;" class="hover:text-neutral-300">Privacidad</a>
+          <a href="#" onclick="openLegalModal('legal'); return false;" class="hover:text-neutral-300">Aviso Legal</a>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ÁREA DE PREVISUALIZACIÓN / CANVAS MÓVIL (DERECHA) -->
+    <main id="preview-canvas-container" class="flex-1 bg-[#050505] flex flex-col items-center justify-start overflow-auto p-4 sm:p-8 relative selection:bg-none">
+      
+      <div class="absolute inset-0 bg-[radial-gradient(#262626_1px,transparent_1px)] [background-size:20px_20px] opacity-30 pointer-events-none"></div>
+
+      <!-- BARRA FLOTANTE DE ZOOM -->
+      <div id="zoom-bar" class="sticky top-2 z-40 mb-6 flex flex-wrap items-center gap-3 bg-[#121212]/90 backdrop-blur-md border border-neutral-800 px-4 py-2 rounded-2xl shadow-2xl text-xs text-neutral-300">
+        <span class="flex items-center gap-1.5 font-bold text-neutral-200">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span> Previsualización HD
+        </span>
+        <span class="text-neutral-700 hidden sm:inline">|</span>
+        <div class="flex items-center gap-1">
+          <button onclick="changeZoom(-0.1)" class="w-6 h-6 bg-neutral-800 hover:bg-neutral-700 rounded-lg flex items-center justify-center font-bold text-neutral-200"><i class="fa-solid fa-minus text-[10px]"></i></button>
+          <span id="zoom-percentage-text" class="w-12 text-center font-bold text-red-500">70%</span>
+          <button onclick="changeZoom(0.1)" class="w-6 h-6 bg-neutral-800 hover:bg-neutral-700 rounded-lg flex items-center justify-center font-bold text-neutral-200"><i class="fa-solid fa-plus text-[10px]"></i></button>
+          <button onclick="resetZoom()" class="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-[10px] font-semibold text-neutral-300">Ajustar</button>
+        </div>
+        <span class="text-neutral-700 hidden sm:inline">|</span>
+        <span id="label-current-mode" class="font-bold text-red-400 text-[11px] hidden sm:inline">Marco Móvil</span>
+      </div>
+
+      <!-- MOCKUP DEL TELÉFONO -->
+      <div id="phone-wrapper" class="origin-top transition-transform duration-200 mb-12">
+        <div id="phone-frame" class="w-[340px] sm:w-[360px] h-[680px] bg-black rounded-[40px] phone-shadow flex flex-col overflow-hidden relative">
+          
+          <!-- MARCA DE AGUA (SOLO EN PLAN GRATIS) -->
+          <div id="watermark-element" class="watermark-overlay">
+            Ethos Chat Studio
+          </div>
+
+          <!-- Dynamic Notch -->
+          <div id="phone-notch" class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-black rounded-b-xl z-40 flex items-center justify-center">
+            <div class="w-3 h-3 rounded-full bg-[#0a0a0a] border border-neutral-800 mr-2"></div>
+            <div class="w-2 h-2 rounded-full bg-red-950"></div>
+          </div>
+
+          <!-- BARRA SUPERIOR DE ESTADO -->
+          <div id="phone-status-bar" class="pt-2 px-6 pb-1 flex items-center justify-between text-[10px] font-bold tracking-tight text-white z-30 select-none bg-black shrink-0">
+            <span id="display-bar-time">21:42</span>
+            <div class="flex items-center gap-1.5 text-[9px]">
+              <i class="fa-solid fa-signal"></i>
+              <i class="fa-solid fa-wifi"></i>
+              <div class="flex items-center border border-white/40 rounded-sm px-0.5">
+                <span id="display-bar-battery" class="text-[9px] font-bold">88</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ENCABEZADO DE CHAT INSTAGRAM -->
+          <div id="chat-header" class="px-3.5 py-2 flex items-center justify-between border-b border-neutral-800/80 bg-black/90 backdrop-blur z-30 select-none shrink-0">
+            <div class="flex items-center gap-2.5">
+              <button class="text-white text-sm hover:opacity-80">
+                <i class="fa-solid fa-chevron-left"></i>
+              </button>
+              
+              <div class="relative story-ring shrink-0">
+                <img id="display-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="Avatar" class="w-7 h-7 rounded-full object-cover border border-black">
+              </div>
+
+              <div class="leading-tight truncate">
+                <div class="flex items-center gap-1">
+                  <span id="display-name" class="font-extrabold text-[11px] text-white truncate">Brandon 💀</span>
+                  <i id="display-badge" class="fa-solid fa-circle-check text-[9px] text-sky-400"></i>
+                </div>
+                <span id="display-handle-status" class="text-[9px] text-neutral-400 block truncate">Activo(a) hoy</span>
+              </div>
+            </div>
+
+            <!-- ICONOS SUPERIORES -->
+            <div id="header-icons" class="flex items-center gap-3 text-white text-sm shrink-0">
+              <i class="fa-solid fa-phone"></i>
+              <i class="fa-solid fa-video"></i>
+              <i class="fa-regular fa-circle-info"></i>
+            </div>
+          </div>
+
+          <!-- ÁREA PRINCIPAL DEL CHAT -->
+          <div id="chat-body" class="flex-1 overflow-y-auto p-3.5 space-y-3.5 bg-black text-white flex flex-col">
+            <!-- Se renderizan las burbujas dinámicamente -->
+          </div>
+
+          <!-- BARRA INFERIOR DE ENVÍO DE INSTAGRAM -->
+          <div id="chat-input-bar" class="p-2.5 bg-black border-t border-neutral-900/80 flex items-center gap-2 select-none z-30 shrink-0">
+            <div class="flex-1 bg-[#1e1e1e] border border-neutral-800 rounded-full px-3 py-1.5 flex items-center justify-between text-[11px] text-neutral-400">
+              <div class="flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-[#0095f6] flex items-center justify-center text-white text-[9px]">
+                  <i class="fa-solid fa-camera"></i>
+                </span>
+                <span class="text-neutral-300">Envía un mensaje...</span>
+              </div>
+              <div class="flex items-center gap-2.5 text-neutral-300 text-xs">
+                <i class="fa-solid fa-microphone"></i>
+                <i class="fa-regular fa-image"></i>
+                <i class="fa-regular fa-face-smile"></i>
+                <i class="fa-solid fa-heart text-rose-500"></i>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- MODAL DE INICIO DE SESIÓN / REGISTRO -->
+  <div id="modal-auth" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-[#121212] border border-neutral-800 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-neutral-400 hover:text-white text-lg w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-red-700 via-red-600 to-rose-500 flex items-center justify-center font-black text-white text-xl shadow-lg shadow-red-600/30 mx-auto">
+          E
+        </div>
+        <h2 id="auth-modal-title" class="text-xl font-extrabold text-white">Inicia Sesión en Ethos</h2>
+        <p class="text-xs text-neutral-400">Accede a tus suscripciones de Stripe, sincroniza proyectos y activa la IA.</p>
+      </div>
+      <p id="auth-context" class="hidden text-[11px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-2 text-center"></p>
+
+      <!-- Selector Pestañas Auth -->
+      <div class="flex bg-[#0a0a0a] p-1 rounded-xl border border-neutral-800 text-xs font-bold">
+        <button id="auth-tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-lg bg-red-600 text-white transition">Inicia Sesión</button>
+        <button id="auth-tab-register" onclick="switchAuthTab('register')" class="flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition">Registrarse</button>
+      </div>
+
+      <form onsubmit="handleAuthSubmit(event)" novalidate class="space-y-3 pt-1">
+        <div id="auth-field-name" class="hidden space-y-1">
+          <label class="block text-[11px] font-bold text-neutral-300">Nombre Completo</label>
+          <input type="text" id="auth-input-name" autocomplete="name" placeholder="Tu Nombre" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500">
+        </div>
+
+        <div class="space-y-1">
+          <label class="block text-[11px] font-bold text-neutral-300">Correo Electrónico</label>
+          <input type="email" id="auth-input-email" autocomplete="email" placeholder="tu@email.com" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500">
+        </div>
+
+        <div class="space-y-1">
+          <label class="block text-[11px] font-bold text-neutral-300">Contraseña</label>
+          <div class="relative">
+            <input type="password" id="auth-input-password" autocomplete="current-password" placeholder="Mínimo 8 caracteres" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl pl-3 pr-14 py-2 text-xs text-white focus:outline-none focus:border-red-500">
+            <button type="button" id="auth-toggle-pw" onclick="toggleAuthPassword()" class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-neutral-400 hover:text-white px-1.5">Ver</button>
+          </div>
+        </div>
+
+        <p id="auth-error" class="hidden text-[11px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded-xl px-3 py-2"></p>
+
+        <button type="submit" id="auth-btn-submit" class="w-full py-2.5 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white font-extrabold rounded-xl text-xs transition shadow-lg shadow-red-600/30">
+          Iniciar Sesión
+        </button>
+        <p class="text-center text-[11px] text-neutral-400 pt-1">
+          <span id="auth-switch-text">¿No tienes cuenta?</span>
+          <button type="button" id="auth-switch-btn" onclick="switchAuthTab(state.authTab === 'login' ? 'register' : 'login')" class="text-red-400 font-bold hover:underline">Regístrate</button>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE ONBOARDING GRABACIÓN DE VÍDEO (2 PASOS) -->
+  <div id="modal-video-guide" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-[#121212] border border-neutral-800 rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+      <button onclick="closeVideoRecordModal()" class="absolute top-4 right-4 text-neutral-400 hover:text-white text-lg w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="text-center space-y-2">
+        <div class="inline-flex items-center gap-2 bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 px-3 py-1 rounded-full text-xs font-extrabold uppercase">
+          <i class="fa-solid fa-circle-dot animate-pulse"></i> Captura Nativa 60 FPS
+        </div>
+        <h3 class="text-xl font-black text-white">Instrucciones para Grabar Vídeo</h3>
+        <p class="text-xs text-neutral-400">Elige qué quieres grabar y sigue los 2 pasos para tener un vídeo fluido en HD:</p>
+      </div>
+
+      <!-- SELECTOR DE MODO DE GRABACIÓN -->
+      <div class="space-y-2">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-neutral-500 block">Modo de grabación</span>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="rec-mode-full" type="button" onclick="selectRecordMode('full')" class="p-3 rounded-2xl border text-left transition border-emerald-500 bg-emerald-600/10">
+            <span class="flex items-center gap-1.5 text-xs font-extrabold text-white"><i class="fa-solid fa-mobile-screen text-emerald-400"></i> Conversación completa</span>
+            <span class="block text-[10px] text-neutral-400 mt-1 leading-snug">Teléfono entero con todos los mensajes acumulándose.</span>
+          </button>
+          <button id="rec-mode-last3" type="button" onclick="selectRecordMode('last3')" class="p-3 rounded-2xl border text-left transition border-neutral-800 bg-[#0a0a0a] hover:border-neutral-600">
+            <span class="flex items-center gap-1.5 text-xs font-extrabold text-white"><i class="fa-solid fa-message text-sky-400"></i> Últimos 3 mensajes</span>
+            <span class="block text-[10px] text-neutral-400 mt-1 leading-snug">Tarjeta compacta: solo el perfil y los 3 últimos mensajes.</span>
+          </button>
+        </div>
+        <label class="flex items-start gap-2 bg-[#0a0a0a] border border-neutral-800 rounded-2xl p-3 cursor-pointer">
+          <input id="rec-chroma" type="checkbox" checked class="mt-0.5 accent-emerald-500">
+          <span class="text-[11px] text-neutral-300 leading-snug">
+            <strong class="text-white">Fondo verde croma</strong> (recomendado). Las esquinas y bordes salen en verde puro para quitar el fondo en tu editor con "Croma / Chroma Key" sin deformar los contornos.
+          </span>
+        </label>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div class="bg-[#0a0a0a] p-3.5 rounded-2xl border border-neutral-800 flex items-start gap-3">
+          <div class="w-7 h-7 rounded-xl bg-red-600/20 text-red-400 font-black flex items-center justify-center shrink-0 border border-red-500/30">
+            1
+          </div>
+          <div class="space-y-1">
+            <span class="font-bold text-white block">Selecciona "Esta pestaña"</span>
+            <p class="text-neutral-400 text-[11px]">En el cuadro de diálogo del navegador, elige la opción <strong class="text-white">"Esta pestaña"</strong> o "Current Tab" para recortar exactamente el marco del teléfono.</p>
+          </div>
+        </div>
+
+        <div class="bg-[#0a0a0a] p-3.5 rounded-2xl border border-neutral-800 flex items-start gap-3">
+          <div class="w-7 h-7 rounded-xl bg-red-600/20 text-red-400 font-black flex items-center justify-center shrink-0 border border-red-500/30">
+            2
+          </div>
+          <div class="space-y-1">
+            <span class="font-bold text-white block">Haz clic en "Compartir"</span>
+            <p class="text-neutral-400 text-[11px]">La animación arrancará sola y la captura se descargará automáticamente en formato <strong class="text-white">.WEBM / .MP4</strong> al terminar.</p>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="confirmAndStartVideoRecording()" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-xl text-xs transition shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2">
+        <i class="fa-solid fa-play"></i> Entendido, Empezar Grabación
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL DE PRECIOS Y SUSCRIPCIONES (CON ENLACES STRIPE QUE FUNCIONAN PERFECTAMENTE) -->
+  <div id="modal-pricing" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-[#121212] border border-neutral-800 rounded-3xl max-w-4xl w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl relative">
+      <button onclick="closePricingModal()" class="absolute top-5 right-5 text-neutral-400 hover:text-white text-lg w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="text-center space-y-2">
+        <div class="inline-flex items-center gap-2 bg-red-600/20 text-red-400 border border-red-600/30 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider">
+          <i class="fa-solid fa-rocket"></i> Planes y Licencias Ethos
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-black text-white">Potencia la Producción de tus Shorts</h2>
+        <p class="text-xs sm:text-sm text-neutral-400 max-w-lg mx-auto">Selecciona el plan ideal para escalar las visitas de tu canal y eliminar limitaciones.</p>
+      </div>
+
+      <!-- GRID DE PLANES -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
+        
+        <!-- PLAN GRATIS (€0) -->
+        <div class="bg-[#0a0a0a] border border-neutral-800 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-neutral-700 transition">
+          <div class="space-y-3">
+            <span class="text-xs font-bold text-neutral-400 uppercase tracking-wider block">Gratis</span>
+            <div class="flex items-baseline gap-1">
+              <span class="text-3xl font-black text-white">€0</span>
+              <span class="text-xs text-neutral-500">/mes</span>
+            </div>
+            <p class="text-[11px] text-neutral-400">Ideal para probar el creador de chats y guiones simples.</p>
+            <ul class="space-y-2 text-xs text-neutral-300 pt-2 border-t border-neutral-800">
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Creador de chats ilimitado</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Captura PNG estándar (1x)</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Animación básica en vivo</li>
+              <li class="flex items-center gap-2 text-neutral-500"><i class="fa-solid fa-xmark text-rose-500 text-[10px]"></i> Marca de agua Ethos</li>
+              <li class="flex items-center gap-2 text-neutral-500"><i class="fa-solid fa-xmark text-rose-500 text-[10px]"></i> Sin IA Gemini automática</li>
+            </ul>
+          </div>
+          <button onclick="closePricingModal()" class="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold rounded-xl text-xs transition border border-neutral-700">
+            Plan Actual
+          </button>
+        </div>
+
+        <!-- PLAN CREADOR (€6,99/mes) -->
+        <div class="bg-neutral-900 border border-neutral-700 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-sky-500/50 transition relative">
+          <div class="space-y-3">
+            <span class="text-xs font-bold text-sky-400 uppercase tracking-wider block">Creador Short</span>
+            <div class="flex items-baseline gap-1">
+              <span class="text-3xl font-black text-white">€6,99</span>
+              <span class="text-xs text-neutral-400">/mes</span>
+            </div>
+            <p class="text-[11px] text-neutral-400">Perfecto para creadores frecuentes de TikTok y YouTube Shorts.</p>
+            <ul class="space-y-2 text-xs text-neutral-200 pt-2 border-t border-neutral-800">
+              <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Sin marca de agua</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Grabación de vídeo ilimitada</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Exportación en calidad 2K</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Plantilla Instagram (WhatsApp e iMessage: próximamente)</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Licencia de uso para redes</li>
+            </ul>
+          </div>
+          <button type="button" onclick="startCheckout('creador')" class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-extrabold rounded-xl text-xs text-center transition shadow-lg shadow-sky-600/30 block cursor-pointer">            Suscribirse • €6,99/mes
+          </button>
+        </div>
+
+        <!-- PLAN PRO AGENCIA (€14,99/mes) -->
+        <div class="bg-gradient-to-b from-red-950/60 to-neutral-900 border-2 border-red-600 rounded-2xl p-5 flex flex-col justify-between space-y-4 shadow-2xl shadow-red-600/20 relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[10px] uppercase font-black px-3 py-0.5 rounded-full tracking-wider shadow-md">
+            MÁS POPULAR
+          </div>
+
+          <div class="space-y-3 pt-1">
+            <span class="text-xs font-extrabold text-red-400 uppercase tracking-wider block flex items-center gap-1">
+              <i class="fa-solid fa-crown text-amber-400"></i> Pro / Agencia
+            </span>
+            <div class="flex items-baseline gap-1">
+              <span class="text-3xl font-black text-white">€14,99</span>
+              <span class="text-xs text-neutral-400">/mes</span>
+            </div>
+            <p class="text-[11px] text-neutral-300">Potencia completa con IA Gemini integrada y máxima calidad Retina.</p>
+            <ul class="space-y-2 text-xs text-neutral-100 pt-2 border-t border-red-900/60">
+              <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-sparkles text-amber-400 text-[10px]"></i> IA Gemini 3 incluida (cuota diaria)</li>
+              <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-check text-red-500 text-[10px]"></i> Exportación 4K Ultra HD (3x)</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-red-500 text-[10px]"></i> Guardado/Carga de proyectos JSON</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-red-500 text-[10px]"></i> Sin marca de agua + Vídeo Ilimitado</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-red-500 text-[10px]"></i> Licencia Comercial Completa</li>
+            </ul>
+          </div>
+          <button type="button" onclick="startCheckout('pro')" class="w-full py-2.5 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white font-extrabold rounded-xl text-xs text-center transition shadow-lg shadow-red-600/40 transform active:scale-95 block cursor-pointer">
+            Activar Plan Pro • €14,99/mes
+          </button>
+        </div>
+
+      </div>
+
+      <p class="text-center text-[11px] text-neutral-500">Tu plan se activa automáticamente al confirmarse el pago con Stripe. Pagas con la cuenta con la que has iniciado sesión.</p>
+
+    </div>
+  </div>
+
+  <!-- MODAL DE TEXTO LEGAL -->
+  <div id="modal-legal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-[#121212] border border-neutral-800 rounded-3xl max-w-2xl w-full p-6 space-y-4 max-h-[80vh] overflow-y-auto relative">
+      <button onclick="closeLegalModal()" class="absolute top-4 right-4 text-neutral-400 hover:text-white text-lg w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <h3 id="legal-modal-title" class="text-lg font-bold text-white">Texto Legal</h3>
+      <div id="legal-modal-body" class="text-xs text-neutral-400 space-y-3 leading-relaxed"></div>
+    </div>
+  </div>
+
+  <!-- NOTIFICACIÓN TOAST -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-neutral-900 border border-neutral-800 text-white px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-red-500"></i>
+    <span id="toast-msg">Notificación</span>
+  </div>
+
+  <!-- LÓGICA JAVASCRIPT COMPLETA Y ROBUSTA -->
+  <script>
+    // REDIRECCIÓN SEGURA A STRIPE CHECKOUT
+    function redirectToStripe(e, url) {
+      if (e) e.stopPropagation();
+      window.open(url, '_blank');
+    }
+
+    // ESTADO GLOBAL CON USUARIOS Y SUSCRIPCIÓN SAAS
+    const state = {
+      currentUser: {
+        isLoggedIn: false,
+        email: 'invitado@ethos.app',
+        name: 'Creador Invitado',
+        plan: 'free'
+      },
+      authTab: 'login',
+      platform: 'instagram',
+      viewMode: 'phone',
+      zoom: 0.7,
+      autoTab: 'ai',
+      isAnimating: false,
+      animIndex: 0,
+      animTimer: null,
+      customColors: {
+        sentBg: '#3797f0',
+        receivedBg: '#262626',
+        sentText: '#ffffff',
+        receivedText: '#ffffff',
+        canvasBg: '#000000'
+      },
+      profile: {
+        name: 'Brandon 💀',
+        status: 'Activo(a) hoy',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        myAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+        verified: true
+      },
+      phoneBar: {
+        time: '21:42',
+        battery: '88'
+      },
+      newMsgSender: 'them',
+      newMsgType: 'text',
+      messages: [
+        { id: '1', type: 'divider', text: 'AYER 21:40' },
+        { id: '2', type: 'text', sender: 'them', text: 'Oye, ¿viste los resultados que nos dieron?', time: '21:40' },
+        { id: '3', type: 'text', sender: 'me', text: '¿De qué hablas? ¿Llegaron hoy?', time: '21:41' },
+        { id: '4', type: 'audio', sender: 'them', audioSpec: '0:14', time: '21:41' },
+        { id: '5', type: 'text', sender: 'me', text: '¡No me digas eso por audio! Dime que es una broma 😭', time: '21:42', reaction: '😭' },
+        { id: '6', type: 'text', sender: 'them', text: 'Escucha la nota de voz. Todo cambió.', time: '21:42', reaction: '💀' }
+      ]
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAll();
+      updateZoomUI();
+      loadStoredSession();
+      checkStripeRedirect();
+    });
+
+    // SISTEMA DE SESIÓN / AUTENTICACIÓN
+    // ===== API, VALIDACIÓN Y SANEADO DE DATOS =====
+    async function api(path, body) {
+      if (location.protocol === 'file:') throw new Error('Abre la app desde el servidor (http://localhost:3000), no haciendo doble clic en el archivo HTML.');
+      let r;
+      try {
+        r = await fetch(path, {
+          method: body === undefined ? 'GET' : 'POST',
+          headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
+          body: body === undefined ? undefined : JSON.stringify(body),
+          credentials: 'same-origin'
+        });
+      } catch (e) { throw new Error('No se pudo conectar con el servidor. ¿Está en marcha (npm start)?'); }
+      let j = null; try { j = await r.json(); } catch (e) {}
+      if (j === null || typeof j !== 'object') {
+        // La respuesta no es del servidor de Ethos (p. ej. Live Server, python -m http.server o un proxy)
+        throw Object.assign(new Error(`El servidor respondió ${r.status} pero no es el de Ethos. Ejecuta "npm start" y abre http://localhost:3000 (no uses Live Server ni otro servidor).`), { status: r.status || 500 });
+      }
+      if (!r.ok) throw Object.assign(new Error(j.error || `Error del servidor (${r.status})`), { code: j.code, status: r.status });
+      return j;
+    }
+
+    const MSG_TYPES = ['text', 'audio', 'image', 'divider', 'seen', 'missed'];
+    const REACTIONS = ['❤️', '😂', '🔥', '💀', '😭', '😡'];
+    const TIME_RE = /^\d{1,2}:\d{2}$/;
+    const clip = (v, n) => (typeof v === 'string' ? v.slice(0, n) : '');
+
+    // Solo http(s) o data:image raster. Devuelve '' si no es válida (nunca javascript:, svg, etc.)
+    function safeImgUrl(u) {
+      if (typeof u !== 'string' || u.length > 3000000) return '';
+      if (/^data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=]+$/.test(u)) return u;
+      try { const x = new URL(u); return (x.protocol === 'https:' || x.protocol === 'http:') && u.length < 2000 ? x.href : ''; } catch (e) { return ''; }
+    }
+    function safeColor(v, fallback, allowGradient) {
+      if (typeof v !== 'string') return fallback;
+      if (/^#[0-9a-f]{6}$/i.test(v)) return v;
+      if (allowGradient && /^linear-gradient\(135deg(, ?#[0-9a-f]{6}){2,4}\)$/i.test(v)) return v;
+      return fallback;
+    }
+    function sanitizeMessages(list) {
+      if (!Array.isArray(list)) return [];
+      const stamp = Date.now().toString(36);
+      return list.slice(0, 200).map((m, i) => {
+        if (!m || typeof m !== 'object') return null;
+        const type = MSG_TYPES.includes(m.type) ? m.type : 'text';
+        const o = {
+          id: 'm' + stamp + i, type, sender: m.sender === 'me' ? 'me' : 'them',
+          time: TIME_RE.test(m.time) ? m.time : state.phoneBar.time,
+          reaction: REACTIONS.includes(m.reaction) ? m.reaction : ''
+        };
+        if (type === 'text') {
+          o.text = clip(m.text, 500); if (!o.text.trim()) return null;
+          const r = clip(m.replyTo, 120); if (r) o.replyTo = r;
+        } else if (type === 'divider' || type === 'seen' || type === 'missed') {
+          o.text = clip(m.text, 40) || { divider: 'HOY', seen: 'Visto', missed: 'Llamada perdida' }[type];
+        } else if (type === 'audio') {
+          o.audioSpec = TIME_RE.test(m.audioSpec) ? m.audioSpec : '0:14';
+        } else if (type === 'image') {
+          o.imgUrl = safeImgUrl(m.imgUrl); if (!o.imgUrl) return null;
+        }
+        return o;
+      }).filter(Boolean);
+    }
+    function sanitizeProject(d) {
+      if (!d || typeof d !== 'object' || !d.profile || typeof d.profile !== 'object' || !Array.isArray(d.messages)) return null;
+      const c = d.customColors && typeof d.customColors === 'object' ? d.customColors : {};
+      const cur = state.customColors;
+      return {
+        profile: {
+          name: clip(d.profile.name, 40).trim() || 'Usuario',
+          status: clip(d.profile.status, 60),
+          avatar: safeImgUrl(d.profile.avatar) || state.profile.avatar,
+          myAvatar: safeImgUrl(d.profile.myAvatar) || state.profile.myAvatar,
+          verified: d.profile.verified !== false
+        },
+        customColors: {
+          sentBg: safeColor(c.sentBg, cur.sentBg, true), receivedBg: safeColor(c.receivedBg, cur.receivedBg),
+          sentText: safeColor(c.sentText, cur.sentText), receivedText: safeColor(c.receivedText, cur.receivedText),
+          canvasBg: safeColor(c.canvasBg, cur.canvasBg)
+        },
+        messages: sanitizeMessages(d.messages)
+      };
+    }
+    function applyProject(p) {
+      Object.assign(state.profile, p.profile);
+      Object.assign(state.customColors, p.customColors);
+      state.messages = p.messages;
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+      set('input-profile-name', state.profile.name); set('input-profile-status', state.profile.status);
+      set('input-profile-avatar', state.profile.avatar.startsWith('data:') ? 'Imagen subida' : state.profile.avatar);
+      set('input-my-avatar', state.profile.myAvatar.startsWith('data:') ? 'Imagen subida' : state.profile.myAvatar);
+      document.getElementById('check-verified').checked = state.profile.verified;
+      [['sent-bg', 'sentBg'], ['received-bg', 'receivedBg'], ['sent-text', 'sentText'], ['received-text', 'receivedText'], ['canvas-bg', 'canvasBg']].forEach(([id, k]) => {
+        const v = state.customColors[k]; if (v.startsWith('#')) set('picker-' + id, v); set('hex-' + id, v);
+      });
+      renderAll();
+    }
+
+    // ===== SESIÓN REAL (cookie HttpOnly firmada por el servidor) =====
+    async function loadStoredSession() {
+      try {
+        const { user } = await api('/api/me');
+        state.currentUser = user ? { isLoggedIn: true, ...user } : { isLoggedIn: false, email: 'invitado@ethos.app', name: 'Creador Invitado', plan: 'free' };
+      } catch (e) { console.error('Sesión no disponible', e); }
+      updateAuthUI(); updatePlanUI();
+    }
+
+    function saveCurrentSession() { updateAuthUI(); updatePlanUI(); }
+
+    // Acción que se ejecuta automáticamente justo después de iniciar sesión (p. ej. ir al pago)
+    let pendingAuthAction = null;
+
+    function requireAuth(action, opts = {}) {
+      if (state.currentUser.isLoggedIn) return action();
+      pendingAuthAction = action;
+      showAuthModal(opts.tab || 'register', opts.message || '');
+    }
+
+    // PAGO: primero cuenta, después Stripe (así el pago queda ligado a la cuenta)
+    function startCheckout(plan) {
+      requireAuth(() => goToCheckout(plan), { tab: 'register', message: 'Paso 1 de 2 · Crea tu cuenta (o inicia sesión) para que tu plan quede guardado. Después irás al pago seguro.' });
+    }
+
+    async function goToCheckout(plan) {
+      try {
+        showToast('Abriendo el pago seguro...');
+        const { url } = await api('/api/checkout', { plan });
+        window.location.href = url;
+      } catch (e) {
+        if (e.status === 401) { state.currentUser.isLoggedIn = false; updateAuthUI(); return startCheckout(plan); } // sesión caducada
+        showToast(e.message, true);
+      }
+    }
+
+    function updateAuthUI() {
+      const nameLbl = document.getElementById('user-display-name');
+      const emailLbl = document.getElementById('user-display-email');
+      const initialLbl = document.getElementById('user-avatar-initial');
+      const btnAuthLbl = document.getElementById('lbl-auth-btn');
+
+      if (state.currentUser && state.currentUser.isLoggedIn) {
+        nameLbl.textContent = state.currentUser.name || 'Usuario Pro';
+        emailLbl.textContent = state.currentUser.email;
+        initialLbl.textContent = (state.currentUser.name || 'U').charAt(0).toUpperCase();
+        btnAuthLbl.textContent = 'Salir';
+      } else {
+        nameLbl.textContent = 'Invitado';
+        emailLbl.textContent = 'Sin sesión';
+        initialLbl.textContent = 'G';
+        btnAuthLbl.textContent = 'Acceder';
+      }
+    }
+
+    // Botón del encabezado: entrar o salir
+    async function openAuthModal() {
+      if (state.currentUser.isLoggedIn) {
+        if (!confirm('¿Cerrar sesión?')) return;
+        try { await api('/api/logout', {}); } catch (e) {}
+        await loadStoredSession();
+        showToast('Sesión cerrada');
+      } else showAuthModal('login');
+    }
+
+    function showAuthModal(tab = 'login', message = '') {
+      closePricingModal();
+      switchAuthTab(tab);
+      const ctx = document.getElementById('auth-context');
+      ctx.textContent = message; ctx.classList.toggle('hidden', !message);
+      document.getElementById('modal-auth').classList.remove('hidden');
+      setTimeout(() => document.getElementById('auth-input-email').focus(), 50);
+    }
+
+    function hideAuthModal() { document.getElementById('modal-auth').classList.add('hidden'); }
+    function closeAuthModal() { pendingAuthAction = null; hideAuthModal(); } // cancelar = olvidar la acción pendiente
+
+    function toggleAuthPassword() {
+      const i = document.getElementById('auth-input-password'); const show = i.type === 'password';
+      i.type = show ? 'text' : 'password';
+      document.getElementById('auth-toggle-pw').textContent = show ? 'Ocultar' : 'Ver';
+    }
+
+    function switchAuthTab(tab) {
+      state.authTab = tab;
+      const isLogin = tab === 'login';
+      document.getElementById('auth-error').classList.add('hidden');
+      document.getElementById('auth-tab-login').className = isLogin ? 'flex-1 py-2 rounded-lg bg-red-600 text-white transition' : 'flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition';
+      document.getElementById('auth-tab-register').className = isLogin ? 'flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition' : 'flex-1 py-2 rounded-lg bg-red-600 text-white transition';
+      document.getElementById('auth-field-name').classList.toggle('hidden', isLogin);
+      document.getElementById('auth-modal-title').textContent = isLogin ? 'Inicia sesión en Ethos' : 'Crea tu cuenta Ethos';
+      document.getElementById('auth-btn-submit').textContent = isLogin ? 'Iniciar Sesión' : 'Crear cuenta';
+      document.getElementById('auth-switch-text').textContent = isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?';
+      document.getElementById('auth-switch-btn').textContent = isLogin ? 'Regístrate' : 'Inicia sesión';
+      document.getElementById('auth-input-password').autocomplete = isLogin ? 'current-password' : 'new-password';
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('auth-input-email').value.trim();
+      const password = document.getElementById('auth-input-password').value;
+      const name = document.getElementById('auth-input-name').value.trim();
+      const btn = document.getElementById('auth-btn-submit');
+      const errBox = document.getElementById('auth-error');
+      const isRegister = state.authTab === 'register';
+      const idleLabel = isRegister ? 'Crear cuenta' : 'Iniciar Sesión';
+      const fail = (msg) => { errBox.textContent = msg; errBox.classList.remove('hidden'); };
+      errBox.classList.add('hidden');
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return fail('Escribe un correo válido (ej. tu@email.com).');
+      if (!password) return fail('Escribe tu contraseña.');
+      if (isRegister && password.length < 8) return fail('La contraseña debe tener al menos 8 caracteres.');
+
+      btn.disabled = true; btn.textContent = 'Un momento...';
+      try {
+        const { user } = await api(isRegister ? '/api/register' : '/api/login', { email, password, name });
+        document.getElementById('auth-input-password').value = '';
+        await loadStoredSession(); // confirma que el navegador guardó la cookie de sesión
+        if (!state.currentUser.isLoggedIn) return fail('Entraste, pero el navegador no guardó la sesión. Si usas http (no https) pon COOKIE_SECURE=auto en .env y reinicia el servidor.');
+        const next = pendingAuthAction; pendingAuthAction = null;
+        hideAuthModal();
+        if (next) { showToast(isRegister ? 'Cuenta creada. Vamos al pago...' : `Hola de nuevo, ${user.name}. Vamos al pago...`); next(); }
+        else showToast(isRegister ? `¡Cuenta creada! Bienvenido/a, ${user.name}` : `¡Hola de nuevo, ${user.name}!`);
+      } catch (err) {
+        if (err.code === 'EMAIL_TAKEN') { switchAuthTab('login'); fail('Ese correo ya tiene cuenta. Escribe tu contraseña para entrar.'); }
+        else if (err.code === 'BAD_CREDENTIALS') fail('Correo o contraseña incorrectos. Si aún no tienes cuenta, pulsa "Regístrate".');
+        else fail(err.message);
+      } finally { btn.disabled = false; btn.textContent = state.authTab === 'register' ? 'Crear cuenta' : 'Iniciar Sesión'; }
+    }
+
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && !document.getElementById('modal-auth').classList.contains('hidden')) closeAuthModal();
+    });
+
+    // DETECTOR DE PAGO EXITOSO DESDE STRIPE
+    // El plan lo decide el servidor (webhook de Stripe). Aquí solo se espera a que se refleje.
+    async function checkStripeRedirect() {
+      if (new URLSearchParams(window.location.search).get('status') !== 'success') return;
+      window.history.replaceState({}, document.title, window.location.pathname);
+      showToast('Pago recibido. Activando tu plan...');
+      for (let i = 0; i < 10; i++) {
+        await new Promise(r => setTimeout(r, 2000));
+        await loadStoredSession();
+        if (!state.currentUser.isLoggedIn) { showAuthModal('login', 'Pago recibido. Inicia sesión con tu cuenta para ver tu plan activado.'); return; }
+        if (state.currentUser.plan !== 'free') { showToast(`¡Plan ${state.currentUser.plan.toUpperCase()} activado!`); return; }
+      }
+      showToast('Tu pago está en proceso. Si no se activa en unos minutos, recarga la página.', true);
+    }
+
+    function updatePlanUI() {
+      const badge = document.getElementById('badge-header-plan');
+      const watermark = document.getElementById('watermark-element');
+      const exportText = document.getElementById('btn-export-text');
+      const statusPlanDesc = document.getElementById('lbl-user-plan-desc');
+      const statusPlanBadge = document.getElementById('lbl-user-plan-status');
+
+      const plan = state.currentUser.plan || 'free';
+
+      if (plan === 'pro') {
+        badge.textContent = "Plan Pro 💎";
+        badge.className = "text-[10px] uppercase font-extrabold bg-gradient-to-r from-red-600 to-amber-500 text-white border border-amber-400 px-2.5 py-0.5 rounded-full cursor-pointer shadow-sm";
+        if (watermark) watermark.style.display = 'none';
+        if (exportText) exportText.textContent = "Descargar 4K (3x)";
+        if (statusPlanBadge) {
+          statusPlanBadge.textContent = "Pro 💎";
+          statusPlanBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-600 text-white border border-amber-400";
+        }
+        if (statusPlanDesc) statusPlanDesc.textContent = "Suscripción activa: IA Gemini Ilimitada + Calidad 4K + Sin marcas de agua.";
+      } else if (plan === 'creador') {
+        badge.textContent = "Creador 🚀";
+        badge.className = "text-[10px] uppercase font-extrabold bg-sky-600 text-white border border-sky-400 px-2.5 py-0.5 rounded-full cursor-pointer";
+        if (watermark) watermark.style.display = 'none';
+        if (exportText) exportText.textContent = "Descargar 2K";
+        if (statusPlanBadge) {
+          statusPlanBadge.textContent = "Creador 🚀";
+          statusPlanBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-600 text-white border border-sky-400";
+        }
+        if (statusPlanDesc) statusPlanDesc.textContent = "Suscripción activa: Vídeo HD Ilimitado + Sin marcas de agua.";
+      } else {
+        badge.textContent = "Gratis (€0)";
+        badge.className = "text-[10px] uppercase font-extrabold bg-neutral-800 text-neutral-400 border border-neutral-700 px-2 py-0.5 rounded-full cursor-pointer hover:bg-neutral-700 transition";
+        if (watermark) watermark.style.display = 'block';
+        if (exportText) exportText.textContent = "Descargar HD";
+        if (statusPlanBadge) {
+          statusPlanBadge.textContent = "Gratis (€0)";
+          statusPlanBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 border border-neutral-700";
+        }
+        if (statusPlanDesc) statusPlanDesc.textContent = "Plan estándar activo. Desbloquea más resolución e IA suscribiéndote.";
+      }
+    }
+
+    function openPricingModal() {
+      document.getElementById('modal-pricing').classList.remove('hidden');
+    }
+
+    function closePricingModal() {
+      document.getElementById('modal-pricing').classList.add('hidden');
+    }
+
+    function renderAll() {
+      updateProfileUI();
+      renderMessages();
+      renderEditorMessagesList();
+      applyViewMode();
+      updatePlanUI();
+    }
+
+    // CONTROL DE COLORES
+    function updateChatColors() {
+      state.customColors.sentBg = document.getElementById('picker-sent-bg').value;
+      state.customColors.receivedBg = document.getElementById('picker-received-bg').value;
+      state.customColors.sentText = document.getElementById('picker-sent-text').value;
+      state.customColors.receivedText = document.getElementById('picker-received-text').value;
+      state.customColors.canvasBg = document.getElementById('picker-canvas-bg').value;
+
+      document.getElementById('hex-sent-bg').value = state.customColors.sentBg;
+      document.getElementById('hex-received-bg').value = state.customColors.receivedBg;
+      document.getElementById('hex-sent-text').value = state.customColors.sentText;
+      document.getElementById('hex-received-text').value = state.customColors.receivedText;
+      document.getElementById('hex-canvas-bg').value = state.customColors.canvasBg;
+
+      document.getElementById('chat-body').style.backgroundColor = state.customColors.canvasBg;
+
+      renderMessages();
+    }
+
+    function syncHexColor(type) {
+      const hexVal = document.getElementById(`hex-${type}`).value.trim();
+      if (/^#[0-9A-F]{6}$/i.test(hexVal)) {
+        document.getElementById(`picker-${type}`).value = hexVal;
+        updateChatColors();
+      }
+    }
+
+    function applyColorPreset(presetKey) {
+      if (presetKey === 'ig-blue') {
+        state.customColors.sentBg = '#3797f0';
+        state.customColors.receivedBg = '#262626';
+      } else if (presetKey === 'ig-gradient') {
+        state.customColors.sentBg = 'linear-gradient(135deg, #7F00FF, #E100FF, #FF007F, #FF7000)';
+        state.customColors.receivedBg = '#262626';
+      } else if (presetKey === 'ethos-red') {
+        state.customColors.sentBg = 'linear-gradient(135deg, #dc2626, #991b1b, #ff2e2e)';
+        state.customColors.receivedBg = '#1f1f1f';
+      } else if (presetKey === 'whatsapp-green') {
+        state.customColors.sentBg = '#005c4b';
+        state.customColors.receivedBg = '#202c33';
+        state.customColors.canvasBg = '#0b141a';
+      }
+
+      if (!state.customColors.sentBg.includes('gradient')) {
+        document.getElementById('picker-sent-bg').value = state.customColors.sentBg;
+        document.getElementById('hex-sent-bg').value = state.customColors.sentBg;
+      }
+      document.getElementById('picker-received-bg').value = state.customColors.receivedBg;
+      document.getElementById('hex-received-bg').value = state.customColors.receivedBg;
+      document.getElementById('picker-canvas-bg').value = state.customColors.canvasBg || '#000000';
+
+      document.getElementById('chat-body').style.backgroundColor = state.customColors.canvasBg || '#000000';
+
+      renderMessages();
+      showToast('Preset de color aplicado');
+    }
+
+    // GENERACIÓN GEMINI IA
+    async function generateChatWithAI() {
+      const prompt = document.getElementById('input-ai-prompt').value.trim();
+      if (!state.currentUser.isLoggedIn) { showToast('Inicia sesión para usar la IA', true); openAuthModal(); return; }
+      if (state.currentUser.plan !== 'pro') { showToast('La IA es exclusiva del Plan Pro (€14,99)', true); openPricingModal(); return; }
+      if (!prompt) { showToast('Escribe una idea dramática para la IA', true); return; }
+
+      const btn = document.getElementById('btn-generate-ai');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Generando guion...`;
+      try {
+        const { data, usage } = await api('/api/ai/generate', { prompt });
+        const p = sanitizeProject({
+          profile: { name: data && data.profileName, status: data && data.status, verified: state.profile.verified },
+          messages: data && data.messages
+        });
+        if (!p || !p.messages.length) throw new Error('La IA devolvió un guion vacío. Inténtalo de nuevo.');
+        applyProject(p);
+        showToast(`¡Chat generado! Te quedan ${Math.max(0, usage.dailyLimit - usage.day)} generaciones hoy`);
+      } catch (err) {
+        showToast(err.message, true);
+        if (err.code === 'PLAN') openPricingModal();
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-sparkles"></i> Generar Chat Viral con IA`;
+      }
+    }
+
+    // MOTOR DE ANIMACIÓN
+    function toggleAnimationPlayback() {
+      if (state.isAnimating) {
+        stopAnimation();
+      } else {
+        startAnimation();
+      }
+    }
+
+    function startAnimation() {
+      if (state.messages.length === 0) return;
+      state.isAnimating = true;
+      state.animIndex = 0;
+
+      document.getElementById('anim-icon').className = "fa-solid fa-pause";
+      document.getElementById('anim-btn-text').textContent = "Pausar";
+
+      const chatBody = document.getElementById('chat-body');
+      chatBody.innerHTML = '';
+
+      runAnimationStep();
+    }
+
+    function runAnimationStep() {
+      if (!state.isAnimating) return;
+
+      if (state.animIndex >= state.messages.length) {
+        stopAnimation();
+        showToast('Animación completada');
+        return;
+      }
+
+      const msg = state.messages[state.animIndex];
+      const speedSec = parseFloat(document.getElementById('input-anim-speed').value) || 1.8;
+      const showTyping = document.getElementById('check-show-typing').checked;
+
+      if (showTyping && msg.sender === 'them' && msg.type === 'text') {
+        renderTypingIndicator();
+        setTimeout(() => {
+          removeTypingIndicator();
+          appendSingleMessageToChat(msg);
+          state.animIndex++;
+          state.animTimer = setTimeout(runAnimationStep, speedSec * 1000);
+        }, 800);
+      } else {
+        appendSingleMessageToChat(msg);
+        state.animIndex++;
+        state.animTimer = setTimeout(runAnimationStep, speedSec * 1000);
+      }
+    }
+
+    function stopAnimation() {
+      state.isAnimating = false;
+      if (state.animTimer) clearTimeout(state.animTimer);
+      document.getElementById('anim-icon').className = "fa-solid fa-play";
+      document.getElementById('anim-btn-text').textContent = "▶️ Reproducir";
+    }
+
+    function renderTypingIndicator() {
+      if (recordingMode) trimChatToLast(RECORDING_VISIBLE_MESSAGES - 1);
+      removeTypingIndicator();
+      const chatBody = document.getElementById('chat-body');
+      const div = document.createElement('div');
+      div.id = "temp-typing-indicator";
+      div.className = "flex items-end gap-2 justify-start my-1 select-none msg-animate";
+      div.innerHTML = `
+        <img class="js-typing-av w-7 h-7 rounded-full object-cover mb-1 border border-neutral-800 shrink-0">
+        <div class="px-3.5 py-2.5 rounded-3xl bg-[#262626] flex items-center gap-1.5 shadow-sm">
+          <span class="w-1.5 h-1.5 bg-neutral-400 rounded-full dot-pulse-1"></span>
+          <span class="w-1.5 h-1.5 bg-neutral-400 rounded-full dot-pulse-2"></span>
+          <span class="w-1.5 h-1.5 bg-neutral-400 rounded-full dot-pulse-3"></span>
+        </div>
+      `;
+      div.querySelector('.js-typing-av').src = safeImgUrl(state.profile.avatar) || 'https://placehold.co/150';
+      chatBody.appendChild(div);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const el = document.getElementById('temp-typing-indicator');
+      if (el) el.remove();
+    }
+
+    // ONBOARDING Y CAPTURA DE VÍDEO
+    function openVideoRecordModal() {
+      document.getElementById('modal-video-guide').classList.remove('hidden');
+    }
+
+    function closeVideoRecordModal() {
+      document.getElementById('modal-video-guide').classList.add('hidden');
+    }
+
+    // ===== GRABACIÓN DE VÍDEO =====
+    // Modos: 'full' = conversación completa | 'last3' = tarjeta compacta (perfil + últimos 3 mensajes)
+    let recordModeSel = 'full';
+    let recLayoutBackup = null;
+
+    function selectRecordMode(mode) {
+      recordModeSel = mode;
+      const on = "p-3 rounded-2xl border text-left transition border-emerald-500 bg-emerald-600/10";
+      const off = "p-3 rounded-2xl border text-left transition border-neutral-800 bg-[#0a0a0a] hover:border-neutral-600";
+      document.getElementById('rec-mode-full').className = mode === 'full' ? on : off;
+      document.getElementById('rec-mode-last3').className = mode === 'last3' ? on : off;
+    }
+
+    function confirmAndStartVideoRecording() {
+      closeVideoRecordModal();
+      startVideoRecordingProcess(recordModeSel, document.getElementById('rec-chroma').checked);
+    }
+
+    // Prepara el diseño que se verá durante la grabación
+    function applyRecordingLayout(mode) {
+      const frame = document.getElementById('phone-frame');
+      const chatBody = document.getElementById('chat-body');
+      const wm = document.getElementById('watermark-element');
+      recLayoutBackup = {
+        zoom: state.zoom,
+        minHeight: frame.style.minHeight,
+        scrollTop: document.getElementById('preview-canvas-container').scrollTop
+      };
+
+      document.getElementById('zoom-bar').style.visibility = 'hidden';
+      document.getElementById('toast').style.visibility = 'hidden';
+
+      if (mode === 'last3') {
+        // Tarjeta compacta: solo cabecera con perfil + zona de 3 mensajes
+        document.getElementById('phone-status-bar').classList.add('hidden');
+        document.getElementById('chat-input-bar').classList.add('hidden');
+        const notch = document.getElementById('phone-notch');
+        if (notch) notch.classList.add('hidden');
+        document.getElementById('chat-header').classList.remove('hidden');
+
+        frame.style.height = 'auto';
+        frame.style.minHeight = '0px';
+        frame.style.borderRadius = '28px';
+
+        chatBody.style.flex = 'none';
+        chatBody.style.height = '250px';
+        chatBody.style.overflow = 'hidden';
+        chatBody.style.justifyContent = 'flex-end';
+        if (wm) wm.style.bottom = '8px';
+      }
+
+      // Ampliar el marco hasta aprovechar el área visible: más píxeles reales en el vídeo
+      const main = document.getElementById('preview-canvas-container');
+      const w = frame.offsetWidth, h = frame.offsetHeight;
+      const fit = Math.min((main.clientHeight - 40) / h, (main.clientWidth - 40) / w, 2.5);
+      state.zoom = Math.max(0.5, fit);
+      updateZoomUI();
+      frame.scrollIntoView({ block: 'center', inline: 'center' });
+    }
+
+    function restoreRecordingLayout() {
+      if (!recLayoutBackup) return;
+      const frame = document.getElementById('phone-frame');
+      const chatBody = document.getElementById('chat-body');
+      const wm = document.getElementById('watermark-element');
+
+      chatBody.style.flex = '';
+      chatBody.style.height = '';
+      chatBody.style.overflow = '';
+      chatBody.style.justifyContent = '';
+      if (wm) wm.style.bottom = '';
+
+      applyViewMode(); // restaura barra, notch, altura y radios según el modo de vista elegido
+      frame.style.minHeight = recLayoutBackup.minHeight;
+
+      document.getElementById('zoom-bar').style.visibility = '';
+      document.getElementById('toast').style.visibility = '';
+      state.zoom = recLayoutBackup.zoom;
+      updateZoomUI();
+      document.getElementById('preview-canvas-container').scrollTop = recLayoutBackup.scrollTop;
+      recLayoutBackup = null;
+    }
+
+    function roundedRectPath(ctx, x, y, w, h, r) {
+      r = Math.max(0, Math.min(r, w / 2, h / 2));
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    async function startVideoRecordingProcess(mode = 'full', useChroma = true) {
+      if (state.messages.length === 0) {
+        showToast('Añade al menos un mensaje para grabar', true);
+        return;
+      }
+      if (state.isAnimating) stopAnimation();
+
+      const btnText = document.getElementById('record-btn-text');
+      const frame = document.getElementById('phone-frame');
+      const chatBody = document.getElementById('chat-body');
+      let displayStream = null;
+      let videoElement = null;
+      let layoutApplied = false;
+
+      const cleanup = () => {
+        if (displayStream) displayStream.getTracks().forEach(t => t.stop());
+        if (videoElement) videoElement.remove();
+        recordingMode = false;
+        if (layoutApplied) restoreRecordingLayout();
+        layoutApplied = false;
+        stopAnimation();
+        renderMessages();
+        btnText.textContent = "🎥 Grabar Vídeo";
+      };
+
+      try {
+        showToast('Selecciona "Esta pestaña" y presiona Compartir.');
+
+        displayStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            displaySurface: 'browser',
+            frameRate: { ideal: 60, max: 60 },
+            width: { ideal: 3840 },
+            height: { ideal: 2160 }
+          },
+          audio: false,
+          preferCurrentTab: true
+        });
+
+        btnText.textContent = "🔴 Grabando...";
+
+        videoElement = document.createElement('video');
+        videoElement.srcObject = displayStream;
+        videoElement.muted = true;
+        await videoElement.play();
+
+        // Diseño de grabación (después de compartir, porque el navegador puede cambiar el tamaño de la vista)
+        applyRecordingLayout(mode);
+        layoutApplied = true;
+        chatBody.innerHTML = '';
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        await new Promise(r => setTimeout(r, 400));
+
+        // Tamaño de salida = tamaño real de píxeles capturados (sin reescalar, sin deformar)
+        const evenNum = n => Math.max(2, Math.round(n / 2) * 2);
+        const r0 = frame.getBoundingClientRect();
+        // Region Capture: el navegador recorta exactamente el marco del móvil (sin cálculos de coordenadas)
+        let cropped = false;
+        try {
+          const track = displayStream.getVideoTracks()[0];
+          if (window.CropTarget && typeof track.cropTo === 'function') {
+            await track.cropTo(await CropTarget.fromElement(frame));
+            await new Promise(r => setTimeout(r, 500));
+            const ar = videoElement.videoWidth / videoElement.videoHeight;
+            cropped = Math.abs(ar - r0.width / r0.height) < 0.03;
+          }
+        } catch (e) { console.warn('Region Capture no disponible, uso recorte manual', e); }
+        // Salida SIEMPRE en 9:16 vertical (YouTube Shorts): 1080x1920. El marco del móvil se escala dentro
+        // sin deformarlo y el resto se rellena con verde croma (o con el color de fondo del chat).
+        const outW = 1080, outH = 1920;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = outW;
+        canvas.height = outH;
+        const ctx = canvas.getContext('2d', { alpha: false });
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        const cssRadius = parseFloat(getComputedStyle(frame).borderTopLeftRadius) || 0;
+
+        const outStream = canvas.captureStream(60);
+        const vTrack = outStream.getVideoTracks()[0];
+        if (vTrack && 'contentHint' in vTrack) vTrack.contentHint = 'detail';
+
+        const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+          ? 'video/webm;codecs=vp9'
+          : (MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm');
+
+        const mediaRecorder = new MediaRecorder(outStream, {
+          mimeType: mimeType,
+          videoBitsPerSecond: 25000000
+        });
+
+        const recordedChunks = [];
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+
+        let isRecordingActive = true;
+        let stopTimer = null;
+
+        mediaRecorder.onstop = () => {
+          isRecordingActive = false;
+          const blob = new Blob(recordedChunks, { type: mimeType });
+          const url = URL.createObjectURL(blob);
+          const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `ethos-chat-${mode === 'last3' ? 'ultimos3' : 'completo'}-${Date.now()}.${ext}`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+          cleanup();
+          showToast(`¡Vídeo .${ext} listo y descargado!`);
+        };
+
+        const finishRecording = () => {
+          isRecordingActive = false;
+          if (stopTimer) clearTimeout(stopTimer);
+          if (mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+        };
+
+        // Si el usuario pulsa "Dejar de compartir", se guarda lo grabado hasta ese momento
+        displayStream.getVideoTracks()[0].onended = finishRecording;
+
+        recordingMode = (mode === 'last3');   // en 'last3' solo se mantienen los 3 últimos mensajes
+
+        mediaRecorder.start();
+
+        const renderFrameLoop = () => {
+          if (!isRecordingActive) return;
+
+          const r = frame.getBoundingClientRect();
+          const sx = cropped ? videoElement.videoWidth / r.width : videoElement.videoWidth / window.innerWidth;
+          const sy = cropped ? videoElement.videoHeight / r.height : videoElement.videoHeight / window.innerHeight;
+
+          // Con recorte nativo se usa el fotograma entero; si no, coordenadas enteras (copia 1:1)
+          const srcX = cropped ? 0 : Math.max(0, Math.round(r.left * sx));
+          const srcY = cropped ? 0 : Math.max(0, Math.round(r.top * sy));
+          const srcW = cropped ? videoElement.videoWidth : Math.min(videoElement.videoWidth - srcX, Math.round(r.width * sx));
+          const srcH = cropped ? videoElement.videoHeight : Math.min(videoElement.videoHeight - srcY, Math.round(r.height * sy));
+
+          // Encaje tipo "contain" en el lienzo 9:16, centrado y sin deformar
+          const margin = 24;
+          const fit = Math.min((outW - margin * 2) / srcW, (outH - margin * 2) / srcH);
+          const dw = Math.round(srcW * fit / 2) * 2, dh = Math.round(srcH * fit / 2) * 2;
+          const dx = Math.round((outW - dw) / 2), dy = Math.round((outH - dh) / 2);
+
+          ctx.fillStyle = useChroma ? '#00ff00' : (state.customColors.canvasBg || '#000000');
+          ctx.fillRect(0, 0, outW, outH);
+          ctx.save();
+          // Esquinas redondeadas del marco (1px hacia dentro para quitar el borde mezclado)
+          const radius = Math.max(0, cssRadius * (dw / frame.offsetWidth) - 1);
+          roundedRectPath(ctx, dx + 1, dy + 1, dw - 2, dh - 2, radius);
+          ctx.clip();
+          ctx.drawImage(videoElement, srcX, srcY, srcW, srcH, dx, dy, dw, dh);
+          ctx.restore();
+
+          requestAnimationFrame(renderFrameLoop);
+        };
+        renderFrameLoop();
+
+        startAnimation();
+
+        // Duración real = mensajes * pausa + 0,8 s por cada "escribiendo..." + margen final
+        const speedSec = parseFloat(document.getElementById('input-anim-speed').value) || 1.8;
+        const showTyping = document.getElementById('check-show-typing').checked;
+        const typingCount = showTyping ? state.messages.filter(m => m.sender === 'them' && m.type === 'text').length : 0;
+        const totalDurationMs = (state.messages.length * speedSec * 1000) + (typingCount * 800) + 1200;
+
+        stopTimer = setTimeout(finishRecording, totalDurationMs);
+
+      } catch (err) {
+        console.error("Error durante la grabación:", err);
+        cleanup();
+        showToast('Grabación cancelada o sin permisos.', true);
+      }
+    }
+
+    // PARSER DE GUION EN TEXTO PLANO
+    function parseScriptToChat() {
+      const rawText = document.getElementById('input-script-text').value.trim();
+      if (!rawText) return;
+
+      const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const newMessages = [];
+      let firstSpeaker = '';
+
+      lines.forEach((line, idx) => {
+        let sender = 'them';
+        let text = line;
+        const match = line.match(/^([^:-]+)[:\-]\s*(.+)$/);
+
+        if (match) {
+          const speaker = match[1].trim();
+          text = match[2].trim();
+          if (!firstSpeaker && speaker.toLowerCase() !== 'yo') firstSpeaker = speaker;
+
+          if (speaker.toLowerCase() === 'yo' || (firstSpeaker && speaker.toLowerCase() !== firstSpeaker.toLowerCase())) {
+            sender = 'me';
+          }
+        } else {
+          sender = (idx % 2 === 0) ? 'them' : 'me';
+        }
+
+        newMessages.push({
+          id: Date.now().toString() + idx,
+          type: 'text',
+          sender: sender,
+          text: text,
+          time: state.phoneBar.time,
+          reaction: ''
+        });
+      });
+
+      if (firstSpeaker) {
+        state.profile.name = firstSpeaker;
+        document.getElementById('input-profile-name').value = firstSpeaker;
+      }
+
+      state.messages = sanitizeMessages(newMessages);
+      renderAll();
+      showToast('¡Guion convertido a mensajes!');
+    }
+
+    function switchAutoTab(tab) {
+      state.autoTab = tab;
+      const btnAi = document.getElementById('tab-auto-ai');
+      const btnScript = document.getElementById('tab-auto-script');
+      const panelAi = document.getElementById('panel-auto-ai');
+      const panelScript = document.getElementById('panel-auto-script');
+
+      if (tab === 'ai') {
+        btnAi.className = "flex-1 py-1.5 text-xs font-bold rounded-lg bg-red-600 text-white transition flex items-center justify-center gap-1.5";
+        btnScript.className = "flex-1 py-1.5 text-xs font-bold rounded-lg text-neutral-400 hover:text-neutral-200 transition flex items-center justify-center gap-1.5";
+        panelAi.classList.remove('hidden');
+        panelScript.classList.add('hidden');
+      } else {
+        btnScript.className = "flex-1 py-1.5 text-xs font-bold rounded-lg bg-red-600 text-white transition flex items-center justify-center gap-1.5";
+        btnAi.className = "flex-1 py-1.5 text-xs font-bold rounded-lg text-neutral-400 hover:text-neutral-200 transition flex items-center justify-center gap-1.5";
+        panelScript.classList.remove('hidden');
+        panelAi.classList.add('hidden');
+      }
+    }
+
+    function setViewMode(mode) {
+      state.viewMode = mode;
+      applyViewMode();
+
+      const btnPhone = document.getElementById('btn-view-phone');
+      const btnExpanded = document.getElementById('btn-view-expanded');
+      const btnBubbles = document.getElementById('btn-view-bubbles');
+      const labelMode = document.getElementById('label-current-mode');
+
+      [btnPhone, btnExpanded, btnBubbles].forEach(b => {
+        b.className = "view-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-neutral-700 bg-neutral-800/40 text-neutral-400 hover:text-white font-semibold text-[11px] transition";
+      });
+
+      if (mode === 'phone') {
+        btnPhone.className = "view-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-red-600 bg-red-600/10 text-white font-semibold text-[11px] transition";
+        if (labelMode) labelMode.textContent = "Marco Móvil";
+      } else if (mode === 'expanded') {
+        btnExpanded.className = "view-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-sky-500 bg-sky-500/10 text-white font-semibold text-[11px] transition";
+        if (labelMode) labelMode.textContent = "Extendido";
+      } else {
+        btnBubbles.className = "view-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-red-600 bg-red-600/10 text-white font-semibold text-[11px] transition";
+        if (labelMode) labelMode.textContent = "Solo Burbujas";
+      }
+    }
+
+    function applyViewMode() {
+      const frame = document.getElementById('phone-frame');
+      const statusBar = document.getElementById('phone-status-bar');
+      const header = document.getElementById('chat-header');
+      const inputBar = document.getElementById('chat-input-bar');
+      const notch = document.getElementById('phone-notch');
+
+      if (state.viewMode === 'phone') {
+        frame.style.height = '680px';
+        frame.style.borderRadius = '40px';
+        statusBar.classList.remove('hidden');
+        header.classList.remove('hidden');
+        inputBar.classList.remove('hidden');
+        if (notch) notch.classList.remove('hidden');
+      } else if (state.viewMode === 'expanded') {
+        frame.style.height = 'auto';
+        frame.style.minHeight = '680px';
+        frame.style.borderRadius = '32px';
+        statusBar.classList.remove('hidden');
+        header.classList.remove('hidden');
+        inputBar.classList.remove('hidden');
+        if (notch) notch.classList.remove('hidden');
+      } else if (state.viewMode === 'bubbles') {
+        frame.style.height = 'auto';
+        frame.style.borderRadius = '24px';
+        statusBar.classList.add('hidden');
+        header.classList.add('hidden');
+        inputBar.classList.add('hidden');
+        if (notch) notch.classList.add('hidden');
+      }
+    }
+
+    function changeZoom(delta) {
+      state.zoom = Math.min(Math.max(0.3, state.zoom + delta), 2.0);
+      updateZoomUI();
+    }
+
+    function resetZoom() {
+      state.zoom = 0.7;
+      updateZoomUI();
+    }
+
+    function updateZoomUI() {
+      const wrapper = document.getElementById('phone-wrapper');
+      const zoomText = document.getElementById('zoom-percentage-text');
+      wrapper.style.transform = `scale(${state.zoom})`;
+      zoomText.textContent = `${Math.round(state.zoom * 100)}%`;
+    }
+
+    function toggleAudioPlayState(btn) {
+      const parent = btn.closest('.audio-bubble');
+      if (parent) {
+        parent.classList.toggle('wave-playing');
+        const icon = btn.querySelector('i');
+        if (icon) {
+          icon.className = parent.classList.contains('wave-playing') ? "fa-solid fa-pause text-[10px]" : "fa-solid fa-play text-[10px]";
+        }
+      }
+    }
+
+    // MODO GRABACIÓN: solo se ven los últimos N mensajes en el chat
+    const RECORDING_VISIBLE_MESSAGES = 3;
+    let recordingMode = false;
+
+    function trimChatToLast(keep) {
+      const chatBody = document.getElementById('chat-body');
+      const isMsg = el => el.id !== 'temp-typing-indicator' && !el.querySelector(':scope > span.uppercase') ;
+      let msgs = Array.from(chatBody.children).filter(isMsg);
+      while (msgs.length > keep) {
+        msgs.shift().remove();
+      }
+      // quitar separadores que hayan quedado al inicio
+      while (chatBody.firstElementChild && chatBody.firstElementChild.id !== 'temp-typing-indicator' && !isMsg(chatBody.firstElementChild)) {
+        chatBody.firstElementChild.remove();
+      }
+    }
+
+    function appendSingleMessageToChat(msg) {
+      const chatBody = document.getElementById('chat-body');
+
+      if (msg.type === 'divider') {
+        const div = document.createElement('div');
+        div.className = "text-center my-4 select-none msg-animate";
+        const sp = document.createElement('span');
+        sp.className = 'text-[10px] uppercase font-bold text-neutral-500 tracking-wider';
+        sp.textContent = msg.text;
+        div.appendChild(sp);
+        chatBody.appendChild(div);
+        chatBody.scrollTop = chatBody.scrollHeight;
+        return;
+      }
+
+      if (msg.type === 'seen') {
+        const d = document.createElement('div');
+        d.className = `text-[10px] text-neutral-500 mb-1 msg-animate ${msg.sender === 'me' ? 'text-right pr-1' : 'text-left pl-10'}`;
+        d.textContent = msg.text || 'Visto';
+        chatBody.appendChild(d);
+        if (recordingMode) trimChatToLast(RECORDING_VISIBLE_MESSAGES);
+        chatBody.scrollTop = chatBody.scrollHeight;
+        return;
+      }
+      if (msg.type === 'missed') {
+        const d = document.createElement('div');
+        d.className = 'flex justify-center my-2 msg-animate';
+        const pill = document.createElement('div');
+        pill.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-[11px] text-rose-400 font-semibold';
+        const ic = document.createElement('i'); ic.className = 'fa-solid fa-phone-slash text-[10px]';
+        const tx = document.createElement('span'); tx.textContent = msg.text || 'Llamada perdida';
+        pill.append(ic, tx); d.appendChild(pill); chatBody.appendChild(d);
+        if (recordingMode) trimChatToLast(RECORDING_VISIBLE_MESSAGES);
+        chatBody.scrollTop = chatBody.scrollHeight;
+        return;
+      }
+
+      const row = document.createElement('div');
+      row.className = `flex items-end gap-2 mb-1 msg-animate ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`;
+
+      if (msg.sender === 'them') {
+        const avatar = document.createElement('img');
+        avatar.src = state.profile.avatar;
+        avatar.className = "w-7 h-7 rounded-full object-cover mb-0.5 border border-neutral-800 shrink-0";
+        row.appendChild(avatar);
+      }
+
+      const bubble = document.createElement('div');
+      bubble.className = "max-w-[78%] rounded-2xl text-[13px] leading-snug break-words relative group select-none px-3.5 py-2.5";
+
+      if (msg.sender === 'me') {
+        bubble.style.borderBottomRightRadius = '4px';
+        if (state.customColors.sentBg.includes('gradient')) {
+          bubble.style.background = state.customColors.sentBg;
+        } else {
+          bubble.style.backgroundColor = state.customColors.sentBg;
+        }
+        bubble.style.color = state.customColors.sentText;
+      } else {
+        bubble.style.borderBottomLeftRadius = '4px';
+        bubble.style.backgroundColor = state.customColors.receivedBg;
+        bubble.style.color = state.customColors.receivedText;
+      }
+
+      if (msg.type === 'text') {
+        if (msg.replyTo) {
+          const quote = document.createElement('div');
+          quote.className = 'mb-1.5 pl-2 border-l-2 border-white/40 text-[11px] opacity-75 line-clamp-2';
+          quote.textContent = msg.replyTo;
+          bubble.appendChild(quote);
+        }
+        bubble.appendChild(document.createTextNode(msg.text));
+      } else if (msg.type === 'image') {
+        bubble.className = "max-w-[70%] rounded-2xl overflow-hidden p-0.5 bg-neutral-900 border border-neutral-800 relative";
+        const im = document.createElement('img');
+        im.src = safeImgUrl(msg.imgUrl); im.className = 'w-full h-auto rounded-xl object-cover';
+        bubble.appendChild(im);
+      } else if (msg.type === 'audio') {
+        bubble.className = "audio-bubble min-w-[190px] rounded-2xl p-2.5 flex items-center gap-3 select-none shadow-sm relative";
+        bubble.style.backgroundColor = msg.sender === 'me' ? (state.customColors.sentBg.includes('gradient') ? '#3797f0' : state.customColors.sentBg) : state.customColors.receivedBg;
+        bubble.style.color = msg.sender === 'me' ? state.customColors.sentText : state.customColors.receivedText;
+
+        bubble.innerHTML = `
+          <button onclick="toggleAudioPlayState(this)" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white shrink-0 transition">
+            <i class="fa-solid fa-play text-[10px]"></i>
+          </button>
+          <div class="flex-1 space-y-1">
+            <div class="flex items-center gap-1 h-3">
+              <span class="wave-bar h-2"></span>
+              <span class="wave-bar h-3"></span>
+              <span class="wave-bar h-1.5"></span>
+              <span class="wave-bar h-3.5"></span>
+              <span class="wave-bar h-2"></span>
+            </div>
+            <div class="flex justify-between items-center text-[9px] opacity-80 font-mono">
+              <span class="js-audiospec"></span>
+              <i class="fa-solid fa-microphone"></i>
+            </div>
+          </div>
+        `;
+        bubble.querySelector('.js-audiospec').textContent = TIME_RE.test(msg.audioSpec) ? msg.audioSpec : '0:14';
+      }
+
+      if (msg.reaction) {
+        const reactBadge = document.createElement('div');
+        const bgCanvasColor = state.customColors.canvasBg || '#000000';
+        
+        reactBadge.className = `absolute -bottom-3 ${msg.sender === 'me' ? 'left-1' : 'right-1'} flex items-center justify-center shadow-sm z-10`;
+        reactBadge.style.backgroundColor = state.customColors.receivedBg; 
+        reactBadge.style.border = `3px solid ${bgCanvasColor}`;
+        reactBadge.style.borderRadius = '999px';
+        reactBadge.style.minWidth = '22px';
+        reactBadge.style.height = '22px';
+        reactBadge.style.fontSize = '12px';
+        reactBadge.style.lineHeight = '1';
+        reactBadge.textContent = msg.reaction;
+        
+        bubble.appendChild(reactBadge);
+        row.style.marginBottom = '12px';
+      }
+
+      if (msg.sender === 'me') {
+        const myAvatar = document.createElement('img');
+        myAvatar.src = state.profile.myAvatar || state.profile.avatar;
+        myAvatar.className = "w-7 h-7 rounded-full object-cover mb-0.5 border border-neutral-800 shrink-0";
+        row.appendChild(myAvatar);
+      }
+
+      row.appendChild(bubble);
+      chatBody.appendChild(row);
+      if (recordingMode) trimChatToLast(RECORDING_VISIBLE_MESSAGES);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function renderMessages() {
+      const chatBody = document.getElementById('chat-body');
+      chatBody.innerHTML = '';
+      state.messages.forEach(msg => appendSingleMessageToChat(msg));
+    }
+
+    function renderEditorMessagesList() {
+      const container = document.getElementById('editor-messages-list');
+      const counter = document.getElementById('msg-counter');
+      container.innerHTML = '';
+      counter.textContent = state.messages.length;
+
+      if (state.messages.length === 0) {
+        container.innerHTML = `<p class="text-xs text-neutral-500 text-center py-4 italic">No hay mensajes en la lista.</p>`;
+        return;
+      }
+
+      const emojis = ['❤️', '😂', '🔥', '💀', '😭', '😡'];
+
+      state.messages.forEach((msg, index) => {
+        const item = document.createElement('div');
+        item.className = "bg-[#0a0a0a] border border-neutral-800 rounded-xl p-2.5 flex flex-col gap-2 text-xs";
+
+        const senderBadge = msg.sender === 'me' 
+          ? `<span class="bg-red-600/20 text-red-400 font-bold text-[10px] px-1.5 py-0.5 rounded shrink-0">Yo</span>`
+          : `<span class="bg-neutral-800 text-neutral-300 font-bold text-[10px] px-1.5 py-0.5 rounded shrink-0">Él/Ella</span>`;
+
+        let emojiButtons = emojis.map(e => `
+          <button onclick="toggleReaction('${msg.id}', '${e}')" class="px-1 py-0.5 rounded hover:bg-neutral-800 text-[11px] ${msg.reaction === e ? 'bg-red-600 text-white' : ''}">${e}</button>
+        `).join('');
+
+        const labelText = msg.type === 'text' ? msg.text : (msg.type === 'image' ? '[Imagen]' : (msg.type === 'audio' ? `🎙️ Nota de Voz (${msg.audioSpec})` : `[${msg.text}]`));
+
+        item.innerHTML = `
+          <div class="flex items-center gap-2">
+            ${msg.type !== 'divider' ? senderBadge : '<span class="bg-amber-500/20 text-amber-300 font-bold text-[10px] px-1.5 py-0.5 rounded">Fecha</span>'}
+            <span class="js-label flex-1 text-neutral-200 font-medium truncate"></span>
+            <div class="flex items-center gap-1 shrink-0">
+              <button onclick="moveMessage(${index}, 'up')" class="p-1 hover:text-red-400 text-neutral-500"><i class="fa-solid fa-arrow-up"></i></button>
+              <button onclick="moveMessage(${index}, 'down')" class="p-1 hover:text-red-400 text-neutral-500"><i class="fa-solid fa-arrow-down"></i></button>
+              <button onclick="deleteMessage('${msg.id}')" class="p-1 hover:text-rose-400 text-neutral-500"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+          </div>
+          ${msg.type !== 'divider' ? `<div class="flex items-center justify-between border-t border-neutral-800 pt-1 text-[10px] text-neutral-400"><span>Reacción:</span><div class="flex gap-1">${emojiButtons}</div></div>` : ''}
+        `;
+
+        item.querySelector('.js-label').textContent = labelText;
+        container.appendChild(item);
+      });
+    }
+
+    function toggleReaction(msgId, emoji) {
+      const msg = state.messages.find(m => m.id === msgId);
+      if (msg) {
+        msg.reaction = msg.reaction === emoji ? '' : emoji;
+        renderMessages();
+        renderEditorMessagesList();
+      }
+    }
+
+    function deleteMessage(id) {
+      state.messages = state.messages.filter(m => m.id !== id);
+      renderMessages();
+      renderEditorMessagesList();
+    }
+
+    function moveMessage(index, direction) {
+      if (direction === 'up' && index > 0) {
+        const temp = state.messages[index];
+        state.messages[index] = state.messages[index - 1];
+        state.messages[index - 1] = temp;
+      } else if (direction === 'down' && index < state.messages.length - 1) {
+        const temp = state.messages[index];
+        state.messages[index] = state.messages[index + 1];
+        state.messages[index + 1] = temp;
+      }
+      renderMessages();
+      renderEditorMessagesList();
+    }
+
+    function clearAllMessages() {
+      state.messages = [];
+      renderMessages();
+      renderEditorMessagesList();
+      showToast('Mensajes eliminados');
+    }
+
+    function setNewMsgType(type) {
+      state.newMsgType = type;
+      ['text', 'audio', 'image', 'divider', 'seen', 'missed'].forEach(t => {
+        const btn = document.getElementById(`btn-type-${t}`);
+        if (btn) btn.className = "flex-1 py-1 rounded-md text-neutral-400 hover:text-neutral-200 transition";
+      });
+      document.getElementById(`btn-type-${type}`).className = "flex-1 py-1 rounded-md bg-red-600 text-white transition";
+
+      document.getElementById('field-text-box').classList.add('hidden');
+      document.getElementById('field-image-box').classList.add('hidden');
+      document.getElementById('field-audio-box').classList.add('hidden');
+      document.getElementById('sender-selector-box').classList.remove('hidden');
+
+      if (type === 'text') document.getElementById('field-text-box').classList.remove('hidden');
+      else if (type === 'image') document.getElementById('field-image-box').classList.remove('hidden');
+      else if (type === 'audio') document.getElementById('field-audio-box').classList.remove('hidden');
+    }
+
+    function setNewMsgSender(sender) {
+      state.newMsgSender = sender;
+      document.getElementById('btn-sender-them').className = sender === 'them' ? "flex-1 py-1 text-xs font-bold rounded-md bg-neutral-800 text-neutral-200 transition" : "flex-1 py-1 text-xs font-bold rounded-md text-neutral-400 hover:text-neutral-200 transition";
+      document.getElementById('btn-sender-me').className = sender === 'me' ? "flex-1 py-1 text-xs font-bold rounded-md bg-red-600 text-white transition" : "flex-1 py-1 text-xs font-bold rounded-md text-neutral-400 hover:text-neutral-200 transition";
+    }
+
+    function addMessageFromForm() {
+      const type = state.newMsgType;
+      const newMsg = {
+        id: Date.now().toString(),
+        type: type,
+        sender: state.newMsgSender,
+        time: state.phoneBar.time,
+        reaction: ''
+      };
+
+      if (type === 'text') {
+        const txt = document.getElementById('input-new-msg-text').value.trim();
+        if (!txt) return;
+        newMsg.text = txt.slice(0, 500);
+        const rp = document.getElementById('input-new-msg-reply').value.trim().slice(0, 120);
+        if (rp) newMsg.replyTo = rp;
+        document.getElementById('input-new-msg-text').value = '';
+        document.getElementById('input-new-msg-reply').value = '';
+      } else if (type === 'image') {
+        const img = document.getElementById('input-new-msg-img').value.trim();
+        if (!img) return;
+        const okImg = safeImgUrl(img);
+        if (!okImg) { showToast('URL de imagen no válida (usa https:// o sube un archivo)', true); return; }
+        newMsg.imgUrl = okImg;
+      } else if (type === 'audio') {
+        newMsg.audioSpec = document.getElementById('input-new-msg-audiospec').value.trim() || '0:14';
+      } else if (type === 'divider') {
+        newMsg.text = 'HOY ' + state.phoneBar.time;
+      } else if (type === 'seen') {
+        newMsg.text = 'Visto ' + state.phoneBar.time;
+      } else if (type === 'missed') {
+        newMsg.text = 'Llamada perdida';
+      }
+
+      state.messages.push(newMsg);
+      renderMessages();
+      renderEditorMessagesList();
+    }
+
+    function handleImageMessageUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          document.getElementById('input-new-msg-img').value = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function setPlatform(plat) {
+      if (plat !== 'instagram') { showToast('Esa plantilla llegará pronto', true); return; }
+      state.platform = plat;
+      ['instagram', 'whatsapp', 'imessage'].forEach(p => {
+        const btn = document.getElementById(`btn-platform-${p}`);
+        if (btn) btn.className = "platform-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-neutral-700 bg-neutral-800/40 text-neutral-400 hover:text-white font-semibold text-[11px] transition";
+      });
+      const activeBtn = document.getElementById(`btn-platform-${state.platform}`);
+      if (activeBtn) activeBtn.className = "platform-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-red-600 bg-red-600/10 text-white font-semibold text-[11px] transition";
+
+      if (plat !== 'instagram') { showToast('Esa plantilla llegará pronto', true); return; }
+      if (plat === 'instagram') {
+        applyColorPreset('ig-blue');
+      }
+
+      renderMessages();
+    }
+
+    function updateProfile() {
+      state.profile.name = document.getElementById('input-profile-name').value || 'Usuario';
+      state.profile.status = document.getElementById('input-profile-status').value || '';
+      state.profile.avatar = document.getElementById('input-profile-avatar').value || 'https://placehold.co/150';
+      state.profile.myAvatar = document.getElementById('input-my-avatar').value || 'https://placehold.co/150';
+      state.profile.verified = document.getElementById('check-verified').checked;
+      updateProfileUI();
+      renderMessages();
+    }
+
+    function updateProfileUI() {
+      document.getElementById('display-name').textContent = state.profile.name;
+      document.getElementById('display-handle-status').textContent = state.profile.status;
+      document.getElementById('display-avatar').src = state.profile.avatar;
+      const badge = document.getElementById('display-badge');
+      if (state.profile.verified) badge.classList.remove('hidden'); else badge.classList.add('hidden');
+    }
+
+    function handleAvatarUpload(e, target) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          if (target === 'me') {
+            state.profile.myAvatar = evt.target.result;
+            document.getElementById('input-my-avatar').value = "Imagen subida";
+          } else {
+            state.profile.avatar = evt.target.result;
+            document.getElementById('input-profile-avatar').value = "Imagen subida";
+          }
+          updateProfileUI();
+          renderMessages();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function saveProjectJSON() {
+      if (state.currentUser.plan === 'free') {
+        showToast('Guardar JSON requiere Plan Creador o Pro', true);
+        openPricingModal();
+        return;
+      }
+      const project = { version: 2, profile: state.profile, customColors: state.customColors, messages: state.messages };
+      const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `ethos-chat-${Date.now()}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      showToast('¡Proyecto JSON guardado!');
+    }
+
+    function loadProjectJSON(event) {
+      if (state.currentUser.plan === 'free') {
+        showToast('Cargar JSON requiere Plan Creador o Pro', true);
+        openPricingModal();
+        return;
+      }
+      const file = event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+      if (file.size > 8 * 1024 * 1024) { showToast('El archivo es demasiado grande (máx. 8 MB)', true); return; }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const project = sanitizeProject(JSON.parse(e.target.result));
+          if (!project) throw new Error('formato');
+          applyProject(project);
+          showToast(`¡Proyecto cargado! ${project.messages.length} mensajes válidos`);
+        } catch (err) {
+          showToast('Archivo no válido: no es un proyecto de Ethos', true);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function exportChatImage() {
+      const targetNode = document.getElementById('phone-frame');
+      const originalZoom = state.zoom;
+      state.zoom = 1.0;
+      updateZoomUI();
+
+      let exportScale = 1.5;
+      if (state.currentUser.plan === 'pro') exportScale = 3;
+      else if (state.currentUser.plan === 'creador') exportScale = 2;
+
+      showToast(`Generando captura (${state.currentUser.plan === 'pro' ? '4K Ultra HD' : (state.currentUser.plan === 'creador' ? '2K' : 'HD').toString()})...`);
+
+      html2canvas(targetNode, {
+        scale: exportScale,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null
+      }).then(canvas => {
+        const image = canvas.toDataURL("image/png");
+        const link = document.createElement('a');
+        link.download = `ethos-chat-${Date.now()}.png`;
+        link.href = image;
+        link.click();
+        
+        state.zoom = originalZoom;
+        updateZoomUI();
+        showToast('¡Imagen descargada con éxito!');
+      }).catch(err => {
+        console.error(err);
+        showToast('Error al exportar la imagen', true);
+      });
+    }
+
+    function copyChatImage() {
+      const targetNode = document.getElementById('phone-frame');
+      showToast('Copiando captura...');
+
+      html2canvas(targetNode, { scale: 2, useCORS: true, allowTaint: true }).then(canvas => {
+        canvas.toBlob(blob => {
+          if (navigator.clipboard && window.ClipboardItem) {
+            const item = new ClipboardItem({ 'image/png': blob });
+            navigator.clipboard.write([item]).then(() => showToast('¡Imagen copiada al portapapeles!'));
+          } else {
+            showToast('Usa el botón Descargar HD', true);
+          }
+        });
+      });
+    }
+
+    function openLegalModal(type) {
+      const modal = document.getElementById('modal-legal');
+      const title = document.getElementById('legal-modal-title');
+      const body = document.getElementById('legal-modal-body');
+
+      if (type === 'terms') {
+        title.textContent = "Términos y Condiciones de Uso";
+        body.innerHTML = `
+          <p>1. <strong>Uso Autorizado:</strong> Ethos Chat Studio es una plataforma SaaS de simulación destinada a la creación de contenido de ficción, parodia y educación audiovisual.</p>
+          <p>2. <strong>Responsabilidad:</strong> El usuario es el único responsable de los contenidos y diálogos creados.</p>
+          <p>3. <strong>Licencias Comercial:</strong> Los vídeos e imágenes exportados en planes Creador y Pro poseen derechos para monetización en redes sociales.</p>
+        `;
+      } else if (type === 'privacy') {
+        title.textContent = "Política de Privacidad (RGPD)";
+        body.innerHTML = `
+          <p>1. <strong>Tratamiento Local:</strong> Los chats se editan en tu navegador. En el servidor guardamos tu correo, nombre y plan para gestionar tu cuenta; los pagos los procesa Stripe y nunca almacenamos datos de tarjeta.</p>
+          <p>2. <strong>Seguridad:</strong> La integración con Stripe procesa cobros bajo encriptación SSL estricta.</p>
+        `;
+      } else if (type === 'legal') {
+        title.textContent = "Aviso Legal y Marcas Registradas";
+        body.innerHTML = `
+          <p>1. Ethos Chat Studio no está vinculada ni asociada con Meta Platforms (Instagram, WhatsApp) ni Apple Inc. (iMessage).</p>
+        `;
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeLegalModal() {
+      document.getElementById('modal-legal').classList.add('hidden');
+    }
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      const toastIcon = document.getElementById('toast-icon');
+
+      toastMsg.textContent = msg;
+      toastIcon.className = isError ? "fa-solid fa-triangle-exclamation text-rose-500" : "fa-solid fa-circle-check text-red-500";
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
