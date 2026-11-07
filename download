@@ -1,6 +1,0 @@
-.env
-ethos.db
-ethos.db-shm
-ethos.db-wal
-node_modules/
-.DS_Store
