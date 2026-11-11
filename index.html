@@ -702,6 +702,19 @@
             <strong class="text-white">Fondo verde croma</strong> (recomendado). Las esquinas y bordes salen en verde puro para quitar el fondo en tu editor con "Croma / Chroma Key" sin deformar los contornos.
           </span>
         </label>
+        <label class="flex items-start gap-2 bg-[#0a0a0a] border border-neutral-800 rounded-2xl p-3 cursor-pointer">
+          <input id="rec-bg-green" type="checkbox" checked class="mt-0.5 accent-emerald-500">
+          <span class="text-[11px] text-neutral-300 leading-snug">
+            <strong class="text-white">Fondo de la conversación transparente</strong>. Mientras grabas, el fondo del chat se pinta de verde puro: en tu editor quitas el verde con "Croma" y se ve tu gameplay detrás (solo quedan los mensajes). Requiere el fondo verde croma activado.
+          </span>
+        </label>
+        <label class="block bg-[#0a0a0a] border border-neutral-800 rounded-2xl p-3">
+          <span class="text-[11px] font-bold text-white block mb-1.5">Tamaño del vídeo</span>
+          <select id="rec-size" class="w-full bg-[#111] border border-neutral-700 rounded-xl px-2 py-1.5 text-[11px] text-white focus:outline-none focus:border-emerald-500">
+            <option value="shorts">Vertical 9:16 para Shorts (1080×1920)</option>
+            <option value="native">Solo el móvil, tamaño original</option>
+          </select>
+        </label>
       </div>
 
       <div class="space-y-3 text-xs">
@@ -760,9 +773,10 @@
             </div>
             <p class="text-[11px] text-neutral-400">Ideal para probar el creador de chats y guiones simples.</p>
             <ul class="space-y-2 text-xs text-neutral-300 pt-2 border-t border-neutral-800">
-              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Creador de chats ilimitado</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Hasta 12 mensajes por chat</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Captura PNG estándar (1x)</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Animación básica en vivo</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> 3 grabaciones de vídeo al día</li>
               <li class="flex items-center gap-2 text-neutral-500"><i class="fa-solid fa-xmark text-rose-500 text-[10px]"></i> Marca de agua Ethos</li>
               <li class="flex items-center gap-2 text-neutral-500"><i class="fa-solid fa-xmark text-rose-500 text-[10px]"></i> Sin IA Gemini automática</li>
             </ul>
@@ -783,7 +797,7 @@
             <p class="text-[11px] text-neutral-400">Perfecto para creadores frecuentes de TikTok y YouTube Shorts.</p>
             <ul class="space-y-2 text-xs text-neutral-200 pt-2 border-t border-neutral-800">
               <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Sin marca de agua</li>
-              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Grabación de vídeo ilimitada</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Mensajes y grabaciones ilimitados</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Exportación en calidad 2K</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Plantilla Instagram (WhatsApp e iMessage: próximamente)</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Licencia de uso para redes</li>
@@ -1454,9 +1468,30 @@
       document.getElementById('rec-mode-last3').className = mode === 'last3' ? on : off;
     }
 
+    // Límites del plan gratuito (los planes de pago no tienen límite)
+    const PLAN_LIMITS = { free: { messages: 12, videosPerDay: 3 } };
+    const freeLimit = (key) => (state.currentUser.plan === 'free' ? PLAN_LIMITS.free[key] : Infinity);
+    function canHaveMessages(total) {
+      if (total <= freeLimit('messages')) return true;
+      showToast(`El plan gratuito permite hasta ${PLAN_LIMITS.free.messages} mensajes por chat. Pásate a Creador para chats sin límite.`, true);
+      openPricingModal();
+      return false;
+    }
+    const recKey = () => 'ethos_rec_' + new Date().toISOString().slice(0, 10);
+    function recordingsToday() { try { return +localStorage.getItem(recKey()) || 0; } catch (e) { return 0; } }
+    function countRecording() { try { localStorage.setItem(recKey(), String(recordingsToday() + 1)); } catch (e) {} }
+
     function confirmAndStartVideoRecording() {
       closeVideoRecordModal();
-      startVideoRecordingProcess(recordModeSel, document.getElementById('rec-chroma').checked);
+      if (recordingsToday() >= freeLimit('videosPerDay')) {
+        showToast(`Plan gratuito: máximo ${PLAN_LIMITS.free.videosPerDay} grabaciones al día. Vuelve mañana o pásate a Creador.`, true);
+        openPricingModal();
+        return;
+      }
+      startVideoRecordingProcess(recordModeSel, document.getElementById('rec-chroma').checked, {
+        bgGreen: document.getElementById('rec-bg-green').checked,
+        shorts: document.getElementById('rec-size').value !== 'native'
+      });
     }
 
     // Prepara el diseño que se verá durante la grabación
@@ -1535,7 +1570,7 @@
       ctx.closePath();
     }
 
-    async function startVideoRecordingProcess(mode = 'full', useChroma = true) {
+    async function startVideoRecordingProcess(mode = 'full', useChroma = true, opts = {}) {
       if (state.messages.length === 0) {
         showToast('Añade al menos un mensaje para grabar', true);
         return;
@@ -1548,6 +1583,7 @@
       let displayStream = null;
       let videoElement = null;
       let layoutApplied = false;
+      let bgBackup = null, bgInlineBackup = '';
 
       const cleanup = () => {
         if (displayStream) displayStream.getTracks().forEach(t => t.stop());
@@ -1555,6 +1591,7 @@
         recordingMode = false;
         if (layoutApplied) restoreRecordingLayout();
         layoutApplied = false;
+        if (bgBackup !== null) { state.customColors.canvasBg = bgBackup; chatBody.style.backgroundColor = bgInlineBackup; bgBackup = null; }
         stopAnimation();
         renderMessages();
         btnText.textContent = "🎥 Grabar Vídeo";
@@ -1584,6 +1621,8 @@
         // Diseño de grabación (después de compartir, porque el navegador puede cambiar el tamaño de la vista)
         applyRecordingLayout(mode);
         layoutApplied = true;
+        // Fondo de la conversación en verde croma puro: se quita en el editor y se ve el gameplay detrás
+        if (useChroma && opts.bgGreen) { bgBackup = state.customColors.canvasBg; bgInlineBackup = chatBody.style.backgroundColor; state.customColors.canvasBg = '#00ff00'; chatBody.style.backgroundColor = '#00ff00'; }
         chatBody.innerHTML = '';
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
         await new Promise(r => setTimeout(r, 400));
@@ -1602,9 +1641,11 @@
             cropped = Math.abs(ar - r0.width / r0.height) < 0.03;
           }
         } catch (e) { console.warn('Region Capture no disponible, uso recorte manual', e); }
-        // Salida SIEMPRE en 9:16 vertical (YouTube Shorts): 1080x1920. El marco del móvil se escala dentro
-        // sin deformarlo y el resto se rellena con verde croma (o con el color de fondo del chat).
-        const outW = 1080, outH = 1920;
+        // Shorts: lienzo 9:16 de 1080x1920 con el móvil encajado y el resto en verde croma.
+        // Original: solo el móvil, a su tamaño real (como en la primera versión).
+        const shorts = opts.shorts !== false;
+        const outW = shorts ? 1080 : evenNum(cropped ? videoElement.videoWidth : r0.width * (videoElement.videoWidth / window.innerWidth));
+        const outH = shorts ? 1920 : evenNum(cropped ? videoElement.videoHeight : r0.height * (videoElement.videoHeight / window.innerHeight));
 
         const canvas = document.createElement('canvas');
         canvas.width = outW;
@@ -1666,6 +1707,7 @@
         recordingMode = (mode === 'last3');   // en 'last3' solo se mantienen los 3 últimos mensajes
 
         mediaRecorder.start();
+        countRecording();
 
         const renderFrameLoop = () => {
           if (!isRecordingActive) return;
@@ -1680,21 +1722,27 @@
           const srcW = cropped ? videoElement.videoWidth : Math.min(videoElement.videoWidth - srcX, Math.round(r.width * sx));
           const srcH = cropped ? videoElement.videoHeight : Math.min(videoElement.videoHeight - srcY, Math.round(r.height * sy));
 
-          // Encaje tipo "contain" en el lienzo 9:16, centrado y sin deformar
-          const margin = 24;
-          const fit = Math.min((outW - margin * 2) / srcW, (outH - margin * 2) / srcH);
-          const dw = Math.round(srcW * fit / 2) * 2, dh = Math.round(srcH * fit / 2) * 2;
-          const dx = Math.round((outW - dw) / 2), dy = Math.round((outH - dh) / 2);
+          let dx = 0, dy = 0, dw = outW, dh = outH;
+          if (shorts) { // encaje tipo "contain", centrado y sin deformar
+            const margin = 24;
+            const fit = Math.min((outW - margin * 2) / srcW, (outH - margin * 2) / srcH);
+            dw = Math.round(srcW * fit / 2) * 2; dh = Math.round(srcH * fit / 2) * 2;
+            dx = Math.round((outW - dw) / 2); dy = Math.round((outH - dh) / 2);
+          }
 
-          ctx.fillStyle = useChroma ? '#00ff00' : (state.customColors.canvasBg || '#000000');
-          ctx.fillRect(0, 0, outW, outH);
-          ctx.save();
-          // Esquinas redondeadas del marco (1px hacia dentro para quitar el borde mezclado)
-          const radius = Math.max(0, cssRadius * (dw / frame.offsetWidth) - 1);
-          roundedRectPath(ctx, dx + 1, dy + 1, dw - 2, dh - 2, radius);
-          ctx.clip();
-          ctx.drawImage(videoElement, srcX, srcY, srcW, srcH, dx, dy, dw, dh);
-          ctx.restore();
+          if (useChroma || shorts) {
+            ctx.fillStyle = useChroma ? '#00ff00' : (state.customColors.canvasBg || '#000000');
+            ctx.fillRect(0, 0, outW, outH);
+            ctx.save();
+            // Esquinas redondeadas del marco (1px hacia dentro para quitar el borde mezclado)
+            const radius = Math.max(0, cssRadius * (dw / frame.offsetWidth) - 1);
+            roundedRectPath(ctx, dx + 1, dy + 1, dw - 2, dh - 2, radius);
+            ctx.clip();
+            ctx.drawImage(videoElement, srcX, srcY, srcW, srcH, dx, dy, dw, dh);
+            ctx.restore();
+          } else {
+            ctx.drawImage(videoElement, srcX, srcY, srcW, srcH, 0, 0, outW, outH);
+          }
 
           requestAnimationFrame(renderFrameLoop);
         };
@@ -1758,9 +1806,13 @@
         document.getElementById('input-profile-name').value = firstSpeaker;
       }
 
+      const cap = freeLimit('messages');
+      const truncated = newMessages.length > cap;
+      if (truncated) newMessages.length = cap;
       state.messages = sanitizeMessages(newMessages);
       renderAll();
-      showToast('¡Guion convertido a mensajes!');
+      if (truncated) showToast(`Plan gratuito: solo se han importado los primeros ${cap} mensajes.`, true);
+      else showToast('¡Guion convertido a mensajes!');
     }
 
     function switchAutoTab(tab) {
@@ -2131,6 +2183,7 @@
     }
 
     function addMessageFromForm() {
+      if (!canHaveMessages(state.messages.length + 1)) return;
       const type = state.newMsgType;
       const newMsg = {
         id: Date.now().toString(),
