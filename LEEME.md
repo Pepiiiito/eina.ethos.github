@@ -17,7 +17,7 @@
 | `build.mjs`, `netlify.toml` | Preparan el despliegue |
 | `package.json` | Instala `@netlify/blobs` (lo hace Netlify solo) |
 | `_headers`, `ethos-logo.svg` | Cabeceras de seguridad y logo |
-| `test-auth.mjs`, `dev-server.mjs` | Pruebas (43) y servidor local de pruebas |
+| `test-auth.mjs`, `dev-server.mjs` | Pruebas (51) y servidor local de pruebas |
 
 > **El arrastrar y soltar (Netlify Drop) ya no sirve para esta versión:** necesita funciones y una dependencia.
 > Despliega desde un repositorio de GitHub conectado a Netlify (o con `npx netlify-cli deploy --prod --build`).
@@ -60,6 +60,14 @@ No es el ID del producto (`prod_`) ni el del Payment Link.
 Cómo se comporta: si alguien entra con Google con un email que ya tenía cuenta con contraseña, se vinculan (Google ya verificó ese email).
 Las cuentas creadas con Google no tienen contraseña hasta que creen una desde "Cuenta" (así pueden entrar también con email).
 Si no pones las variables de Google, el botón simplemente no aparece.
+
+## Si un cliente pagó pero su plan no aparece
+Pasa cuando alguien pagó con un enlace antiguo de Stripe o sin haber iniciado sesión: ese pago no está ligado a ninguna cuenta.
+La web lo recupera sola: al entrar con **el mismo email con el que pagó** (con Google, o con el email ya confirmado por el enlace
+que se envía al registrarse) el plan se activa automáticamente. También hay un botón **"¿Ya pagaste? Recuperar mi compra"** en "Cuenta".
+Por seguridad solo se vincula si el email está demostrado (Google o enlace de confirmación); un email sin confirmar no sirve,
+y un pago que ya pertenece a otra cuenta no se puede reclamar. **Para que funcione hace falta configurar Google o Resend**;
+sin ninguno de los dos no hay forma de comprobar que el email es de quien lo dice. Si pagó con otro email, debe entrar con ese email.
 
 ## Resend (emails)
 Crea una cuenta en resend.com, verifica tu dominio y crea una API key. Sin Resend la app funciona, pero las cuentas
@@ -117,6 +125,6 @@ el navegador y las puede saltar alguien con conocimientos técnicos; el plan gra
 ## Probar en tu PC
 ```bash
 npm install
-npm test                 # 43 pruebas del backend (Stripe, Gemini, Google y email simulados)
+npm test                 # 51 pruebas del backend (Stripe, Gemini, Google y email simulados)
 node dev-server.mjs      # http://localhost:8888 con datos en memoria
 ```

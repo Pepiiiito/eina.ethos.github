@@ -704,6 +704,7 @@
           </div>
         </div>
         <button type="button" onclick="closeAuthModal();openPricingModal()" class="w-full py-2.5 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 disabled:opacity-60 text-white font-extrabold rounded-xl text-sm transition shadow-lg shadow-red-600/30"><i class="fa-solid fa-crown mr-1.5"></i> Ver planes</button>
+        <button type="button" id="btn-recover" onclick="recoverPurchase()" class="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-xl text-xs border border-neutral-700 transition hidden"><i class="fa-solid fa-life-ring mr-1.5 text-amber-400"></i> ¿Ya pagaste? Recuperar mi compra</button>
         <button type="button" id="btn-portal" onclick="manageSubscription()" class="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-xl text-xs border border-neutral-700 transition hidden"><i class="fa-solid fa-credit-card mr-1.5 text-sky-400"></i> Gestionar suscripción (tarjeta, facturas, cancelar)</button>
 
         <details class="bg-[#0a0a0a] border border-neutral-800 rounded-xl">
@@ -1185,7 +1186,7 @@
       set('lbl-auth-btn', u.isLoggedIn ? 'Cuenta' : 'Entrar');
       set('pricing-account-note', u.isLoggedIn
         ? 'Sesión iniciada como ' + u.email + '. El plan se asocia a esta cuenta.'
-        : 'Para suscribirte necesitas una cuenta: así tu plan queda guardado y lo usas en cualquier dispositivo.');
+        : 'Para suscribirte necesitas una cuenta: así tu plan queda guardado y lo usas en cualquier dispositivo. ¿Ya pagaste? Inicia sesión con el mismo email (o Google) con el que pagaste.');
       if (!document.getElementById('modal-auth').classList.contains('hidden') && auth.view === 'account') refreshAccountView();
     }
 
@@ -1203,6 +1204,7 @@
       document.getElementById('acc-plan-note').textContent = note;
       document.getElementById('acc-verify').classList.toggle('hidden', !(backend.features.mail && !u.emailVerified));
       document.getElementById('btn-portal').classList.toggle('hidden', !u.hasSubscription);
+      document.getElementById('btn-recover').classList.toggle('hidden', u.plan !== 'free');
       // Cuentas creadas con Google: no tienen contraseña hasta que creen una
       const nopw = !u.hasPassword;
       document.getElementById('acc-google').classList.toggle('hidden', !u.google);
@@ -1212,6 +1214,21 @@
       del.type = nopw ? 'email' : 'password';
       del.autocomplete = nopw ? 'off' : 'current-password';
       del.placeholder = nopw ? 'Escribe tu email para confirmar' : 'Tu contraseña para confirmar';
+    }
+
+    // Recupera una compra hecha fuera de la cuenta (enlace antiguo de Stripe, pago sin haber iniciado sesión...)
+    async function recoverPurchase() {
+      const btn = document.getElementById('btn-recover');
+      setBusy(btn, true, 'Buscando tu compra…');
+      const r = await apiCall('/api/billing/recover', { body: {} });
+      setBusy(btn, false);
+      if (r.ok) {
+        applyMe(r.data);
+        setAuthMsg('¡Hemos encontrado tu compra! Plan ' + PLAN_LABEL[state.currentUser.plan] + ' activado.', 'ok');
+        showToast('¡Plan ' + PLAN_LABEL[state.currentUser.plan] + ' recuperado!');
+      } else {
+        setAuthMsg(apiError(r, 'No se pudo recuperar la compra.'), r.status === 404 ? 'info' : 'error');
+      }
     }
 
     function startGoogleLogin() {
@@ -1228,7 +1245,7 @@
     };
 
     const AUTH_VIEWS = {
-      login:    ['Entra en Ethos', 'Inicia sesión para usar tu plan en cualquier dispositivo.'],
+      login:    ['Entra en Ethos', 'Inicia sesión para usar tu plan en cualquier dispositivo. ¿Ya pagaste? Entra con el mismo email (o con Google) y tu plan se activa solo.'],
       register: ['Crea tu cuenta', 'Gratis. Con la cuenta tu plan queda guardado.'],
       forgot:   ['Recupera tu contraseña', 'Te enviaremos un enlace para elegir una nueva.'],
       reset:    ['Elige una contraseña nueva', 'Esta será tu contraseña a partir de ahora.'],
@@ -1316,7 +1333,7 @@
       if (plan && canPay) { auth.pendingPlan = null; closeAuthModal(); showToast(msg); startCheckout(plan); return; }
       if (!canPay) { showAuthView('account'); setAuthMsg(msg + ' Confirma tu email (te lo hemos enviado) para poder pagar.', 'ok'); return; }
       closeAuthModal();
-      showToast(msg);
+      showToast(state.currentUser.plan !== 'free' ? msg + ' Tu plan ' + PLAN_LABEL[state.currentUser.plan] + ' está activo.' : msg);
     }
 
     async function submitLogin(e) {
@@ -1497,7 +1514,7 @@
       const r = await apiCall('/api/auth/me', { method: 'GET' });
       if (r.ok && r.data) { backend.available = true; applyMe(r.data); }
       if (gParam === 'ok' && state.currentUser.isLoggedIn) {
-        showToast('Sesión iniciada con Google. ¡Hola, ' + state.currentUser.name + '!');
+        showToast('Sesión iniciada con Google. ¡Hola, ' + state.currentUser.name + '!' + (state.currentUser.plan !== 'free' ? ' Tu plan ' + PLAN_LABEL[state.currentUser.plan] + ' está activo.' : ''));
         if (['creador', 'pro'].includes(gPlan)) startCheckout(gPlan);
       } else if (gParam === 'cancel') {
         showToast('Has cancelado el inicio de sesión con Google.', true);

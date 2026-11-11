@@ -7,11 +7,13 @@ const listen = (s, port) => new Promise((r) => s.listen(port, '127.0.0.1', r));
 const mem = new Map();
 globalThis.__ETHOS_STORE__ = { get: async (k) => (mem.has(k) ? JSON.parse(mem.get(k)) : null), set: async (k, v) => { mem.set(k, JSON.stringify(v)); }, del: async (k) => { mem.delete(k); } };
 
-const M = { subs: {}, mails: [], sessions: [], customers: 0, geminiKey: null };
+const M = { subs: {}, mails: [], sessions: [], customers: 0, geminiKey: null, stripeCustomers: [] };
 const json = (res, o, s = 200) => { res.writeHead(s, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(o)); };
 const body = (req) => new Promise((r) => { let b = ''; req.on('data', (c) => (b += c)); req.on('end', () => r(b)); });
 const stripe = http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://x'), raw = await body(req), form = new URLSearchParams(raw);
+  if (u.pathname === '/v1/customers' && req.method === 'GET') return json(res, { data: M.stripeCustomers.filter((c) => c.email === u.searchParams.get('email')) });
+  if (u.pathname === '/v1/customers/search') { const m = /email:'([^']*)'/.exec(u.searchParams.get('query') || ''); const q = (m ? m[1] : '').toLowerCase(); return json(res, { data: M.stripeCustomers.filter((c) => c.fuzzy || c.email.toLowerCase() === q) }); }
   if (u.pathname === '/v1/customers') { M.customers++; return json(res, { id: 'cus_' + M.customers }); }
   if (u.pathname === '/v1/checkout/sessions') { M.sessions.push(Object.fromEntries(form)); return json(res, { url: 'https://checkout.stripe.test/c/' + M.sessions.length }); }
   if (u.pathname === '/v1/subscriptions') { const c = u.searchParams.get('customer'); return json(res, { data: M.subs[c] ? [{ status: M.subs[c].status, items: { data: [{ price: { id: M.subs[c].price } }] } }] : [] }); }
@@ -258,6 +260,62 @@ await test('Google sin configurar: /start vuelve con motivo "config"', async () 
   const r = await call('GET', '/api/auth/google/start', { client: 'hh', origin: null, xr: false }); api.cfg.googleId = keep;
   assert.strictEqual(r.location, 'https://mi-sitio.netlify.app/?google=error&reason=config');
 });
+
+
+// ================= Recuperar compras hechas fuera de la cuenta =================
+await test('recuperar: email confirmado por enlace + cliente de Stripe con suscripción → plan activado y cliente vinculado', async () => {
+  M.stripeCustomers.push({ id: 'cus_paid1', email: 'pagador@mail.com' }); M.subs.cus_paid1 = { status: 'active', price: 'price_cr' };
+  await call('POST', '/api/auth/register', { body: { email: 'pagador@mail.com', password: PW }, client: 'r1' });
+  assert.strictEqual((await call('GET', '/api/auth/me', { client: 'r1' })).json.plan, 'free');                          // aún sin demostrar el email
+  const t = tokenFrom(/\?verify=([\w.\-]+)/); await call('POST', '/api/auth/verify', { body: { token: t }, client: 'z1' });
+  const me = (await call('GET', '/api/auth/me', { client: 'r1' })).json;
+  assert.strictEqual(me.plan, 'creador'); assert.strictEqual(me.planSource, 'stripe'); assert.strictEqual(me.hasSubscription, true);
+  assert.deepStrictEqual(JSON.parse(mem.get('c/cus_paid1')).id.length, 32);
+});
+await test('recuperar: sin demostrar el email (sin servicio de correo) NO se vincula nada', async () => {
+  M.stripeCustomers.push({ id: 'cus_paid2', email: 'sinprueba@mail.com' }); M.subs.cus_paid2 = { status: 'active', price: 'price_pro' };
+  api.cfg.resendKey = '';
+  await call('POST', '/api/auth/register', { body: { email: 'sinprueba@mail.com', password: PW }, client: 'r2' });
+  const me = (await call('GET', '/api/auth/me', { client: 'r2' })).json;
+  assert.strictEqual(me.plan, 'free');
+  const rec = await call('POST', '/api/billing/recover', { body: {}, client: 'r2' });
+  api.cfg.resendKey = 're_x';
+  assert.strictEqual(rec.status, 403); assert.ok(rec.json.error.includes('Google'));
+  assert.ok(!mem.has('c/cus_paid2'));
+});
+await test('recuperar: Stripe devuelve el email con mayúsculas (solo la búsqueda lo encuentra) → se vincula', async () => {
+  M.stripeCustomers.push({ id: 'cus_paid3', email: 'Mayus@Mail.com' }); M.subs.cus_paid3 = { status: 'active', price: 'price_pro' };
+  const { q } = await googleStart('r3'); G.claims = claimsFor(q.get('nonce'), { sub: 'g-r3', email: 'mayus@mail.com' }); await goCallback('r3', q.get('state'));
+  const me = (await call('GET', '/api/auth/me', { client: 'r3' })).json;
+  assert.strictEqual(me.plan, 'pro');
+});
+await test('recuperar: Google confirma el email → el plan aparece nada más entrar', async () => {
+  M.stripeCustomers.push({ id: 'cus_paid4', email: 'gpago@gmail.com' }); M.subs.cus_paid4 = { status: 'active', price: 'price_cr' };
+  const { q } = await googleStart('r4'); G.claims = claimsFor(q.get('nonce'), { sub: 'g-r4', email: 'gpago@gmail.com' }); await goCallback('r4', q.get('state'));
+  assert.strictEqual((await call('GET', '/api/auth/me', { client: 'r4' })).json.plan, 'creador');
+});
+await test('recuperar: un cliente ya vinculado a otra cuenta no se puede reclamar', async () => {
+  M.stripeCustomers.push({ id: 'cus_taken', email: 'ocupado@gmail.com' }); M.subs.cus_taken = { status: 'active', price: 'price_pro' };
+  mem.set('c/cus_taken', JSON.stringify({ id: 'f'.repeat(32) }));
+  const { q } = await googleStart('r5'); G.claims = claimsFor(q.get('nonce'), { sub: 'g-r5', email: 'ocupado@gmail.com' }); await goCallback('r5', q.get('state'));
+  assert.strictEqual((await call('GET', '/api/auth/me', { client: 'r5' })).json.plan, 'free');
+  assert.strictEqual((await call('POST', '/api/billing/recover', { body: {}, client: 'r5' })).status, 404);
+});
+await test('recuperar: coincidencias difusas de la búsqueda de Stripe se descartan', async () => {
+  M.stripeCustomers.push({ id: 'cus_fuzzy', email: 'distinto@mail.com', fuzzy: true }); M.subs.cus_fuzzy = { status: 'active', price: 'price_pro' };
+  const { q } = await googleStart('r6'); G.claims = claimsFor(q.get('nonce'), { sub: 'g-r6', email: 'buscado@gmail.com' }); await goCallback('r6', q.get('state'));
+  assert.strictEqual((await call('GET', '/api/auth/me', { client: 'r6' })).json.plan, 'free');
+});
+await test('recuperar: botón manual — sin compra da un mensaje claro; con compra la recupera; suscripción cancelada no cuenta', async () => {
+  const none = await call('POST', '/api/billing/recover', { body: {}, client: 'r6' });
+  assert.strictEqual(none.status, 404); assert.ok(none.json.error.includes('buscado@gmail.com'));
+  M.stripeCustomers.push({ id: 'cus_late', email: 'buscado@gmail.com' }); M.subs.cus_late = { status: 'canceled', price: 'price_pro' };
+  assert.strictEqual((await call('POST', '/api/billing/recover', { body: {}, client: 'r6' })).status, 404);
+  M.subs.cus_late = { status: 'active', price: 'price_pro' };
+  const ok = await call('POST', '/api/billing/recover', { body: {}, client: 'r6' });
+  assert.strictEqual(ok.status, 200); assert.strictEqual(ok.json.recovered, true); assert.strictEqual(ok.json.plan, 'pro');
+});
+await test('recuperar: requiere sesión', async () => assert.strictEqual((await call('POST', '/api/billing/recover', { body: {}, client: 'nobody2' })).status, 401));
 
 await test('cuerpo enorme → 413 y ruta desconocida → 404', async () => {
   assert.strictEqual((await call('POST', '/api/auth/login', { body: JSON.stringify({ email: 'a@b.com', password: 'a'.repeat(100000) }), client: 'l' })).status, 413);

@@ -93,6 +93,9 @@ function normEmail(e) {
   if (!v || v.length > 254 || !/^[^\s@<>()]+@[^\s@<>()]+\.[^\s@<>()]{2,}$/.test(v)) throw err(400, 'Introduce un email válido.');
   return v;
 }
+// Un email está "demostrado" si el usuario lo confirmó por enlace, por recuperación de contraseña o con Google.
+// (Sin servicio de email las cuentas se marcan verificadas, pero eso NO demuestra que el email sea suyo.)
+const isProven = (u) => u.emailProven === true || !!u.googleSub || (u.emailProven === undefined && mailEnabled() && !!u.emailVerified);
 const fp = (u) => sha(u.passHash || 'sin-contraseña').slice(0, 16);
 const cleanName = (n) => (typeof n === 'string' ? n.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 60) : '');
 
@@ -202,7 +205,40 @@ async function livePlan(cus) {
   }
   return best;
 }
+async function customersByEmail(email) {
+  const seen = new Map();
+  const add = (r) => (r.data || []).forEach((c) => seen.set(c.id, c));
+  try { add(await stripe('GET', '/v1/customers', { email, limit: '10' })); } catch { /* se prueba la búsqueda */ }
+  if (!seen.size) { try { add(await stripe('GET', '/v1/customers/search', { query: `email:'${email.replace(/'/g, '')}'`, limit: '10' })); } catch { /* sin resultados */ } }
+  return [...seen.values()];
+}
+// Si el email de la cuenta está demostrado y coincide con un cliente de Stripe con suscripción activa, se vincula.
+async function tryLinkStripe(u) {
+  if (u.stripeCustomerId || !billingEnabled() || !isProven(u)) return false;
+  u.linkCheckedAt = now();
+  let best = null;
+  try {
+    for (const c of await customersByEmail(u.email)) {
+      if (String(c.email || '').trim().toLowerCase() !== u.email) continue;   // la búsqueda de Stripe puede ser difusa
+      const owner = await (await db()).get(`c/${c.id}`);
+      if (owner && owner.id !== u.id) continue;                               // ya pertenece a otra cuenta
+      const plan = await livePlan(c.id);
+      if (plan !== 'free' && (!best || RANK[plan] > RANK[best.plan])) best = { id: c.id, plan };
+    }
+  } catch { await saveUser(u); return false; }
+  if (!best) { await saveUser(u); return false; }
+  u.stripeCustomerId = best.id;
+  u.billing = { plan: best.plan, checkedAt: now() };
+  await saveUser(u);
+  await (await db()).set(`c/${best.id}`, { id: u.id });
+  return true;
+}
+
 async function refreshBilling(u, force = false) {
+  if (!u.stripeCustomerId && billingEnabled()) {
+    if (isProven(u) && (force || now() - (u.linkCheckedAt || 0) > 600)) await tryLinkStripe(u);   // máx. 1 consulta cada 10 min
+    if (!u.stripeCustomerId) return u;
+  }
   if (!u.stripeCustomerId || !billingEnabled()) return u;
   const stale = !u.billing || now() - u.billing.checkedAt > 300;
   if (!force && !stale) return u;
@@ -298,7 +334,7 @@ route('POST /api/auth/register', async ({ req, ctx, body }) => {
   if (await getUserByEmail(email)) throw err(409, 'Ya existe una cuenta con ese email. Inicia sesión.');
   const u = {
     id: crypto.randomBytes(16).toString('hex'), email, name: cleanName(body.name), passHash: await hashPassword(body.password),
-    createdAt: now(), emailVerified: !mailEnabled(), sv: 1, failed: { n: 0, at: 0 }, lockedUntil: 0,
+    createdAt: now(), emailVerified: !mailEnabled(), emailProven: false, sv: 1, failed: { n: 0, at: 0 }, lockedUntil: 0,
     stripeCustomerId: null, billing: { plan: 'free', checkedAt: 0 }, promo: null, ai: { day: '', n: 0 },
   };
   await saveUser(u);
@@ -336,7 +372,7 @@ route('POST /api/auth/verify', async ({ req, body }) => {
   if (!p) throw err(400, 'El enlace no es válido o ha caducado. Pide uno nuevo desde tu cuenta.');
   const u = await getUserById(p.uid);
   if (!u) throw err(400, 'El enlace no es válido.');
-  if (!u.emailVerified) { u.emailVerified = true; await saveUser(u); }
+  if (!u.emailVerified || u.emailProven !== true) { u.emailVerified = true; u.emailProven = true; await saveUser(u); }
   return { status: 200, body: { ok: true, email: u.email }, headers: {} };
 });
 
@@ -364,7 +400,7 @@ route('POST /api/auth/reset', async ({ req, body }) => {
   if (!u || fp(u) !== p.f) throw err(400, 'Este enlace ya se ha usado o no es válido. Pide uno nuevo.');
   checkPassword(body.password, u.email);
   u.passHash = await hashPassword(body.password);
-  u.sv += 1; u.failed = { n: 0, at: 0 }; u.lockedUntil = 0; u.emailVerified = true;   // llegar por email confirma la dirección
+  u.sv += 1; u.failed = { n: 0, at: 0 }; u.lockedUntil = 0; u.emailVerified = true; u.emailProven = true;   // llegar por email confirma la dirección
   await saveUser(u);
   return { status: 200, body: { ...(await meBody(u)), reset: true }, headers: { 'Set-Cookie': sessionCookie(req, u) } };
 });
@@ -416,6 +452,18 @@ route('POST /api/billing/checkout', async ({ req, user, body }) => {
 route('POST /api/billing/sync', async ({ user }) => {
   await refreshBilling(user, true);
   return { status: 200, body: await meBody(user), headers: {} };
+}, true);
+
+route('POST /api/billing/recover', async ({ user }) => {
+  if (!billingEnabled()) throw err(503, 'Los pagos no están configurados.');
+  if (!isProven(user)) throw err(403, mailEnabled() ? 'Confirma tu email (te lo enviamos al registrarte) o entra con Google para recuperar tu compra.' : 'Para recuperar una compra entra con Google: así comprobamos que el email es tuyo.');
+  const had = !!user.stripeCustomerId;
+  const linked = had ? false : await tryLinkStripe(user);
+  await refreshBilling(user, true);
+  const body = await meBody(user);
+  const found = linked || (had && body.plan !== 'free');
+  if (!found && !body.hasSubscription && body.planSource !== 'promo') throw err(404, `No encontramos ninguna suscripción activa con el email ${user.email}. Si pagaste con otro email, entra con ese email (o con Google).`);
+  return { status: 200, body: { ...body, recovered: found }, headers: {} };
 }, true);
 
 route('POST /api/billing/portal', async ({ req, user }) => {
@@ -484,11 +532,11 @@ route('GET /api/auth/google/callback', async ({ req, ctx, url }) => {
   let u = await getUserByEmail(email);
   if (u) {
     if (u.googleSub && u.googleSub !== claims.sub) return backTo(req, `google=error&reason=${OAUTH_ERR.failed}`, [clear]);
-    if (!u.googleSub || !u.emailVerified) { u.googleSub = claims.sub; u.emailVerified = true; await saveUser(u); }   // Google ya verificó el email
+    if (!u.googleSub || !u.emailVerified || u.emailProven !== true) { u.googleSub = claims.sub; u.emailVerified = true; u.emailProven = true; await saveUser(u); }   // Google ya verificó el email
   } else {
     u = {
       id: crypto.randomBytes(16).toString('hex'), email, name: cleanName(claims.name || claims.given_name), passHash: null, googleSub: claims.sub,
-      createdAt: now(), emailVerified: true, sv: 1, failed: { n: 0, at: 0 }, lockedUntil: 0,
+      createdAt: now(), emailVerified: true, emailProven: true, sv: 1, failed: { n: 0, at: 0 }, lockedUntil: 0,
       stripeCustomerId: null, billing: { plan: 'free', checkedAt: 0 }, promo: null, ai: { day: '', n: 0 },
     };
     await saveUser(u);
