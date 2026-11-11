@@ -19,7 +19,11 @@ http.createServer(async (req, res) => {
     const chunks = []; for await (const c of req) chunks.push(c);
     const body = ['GET', 'HEAD'].includes(req.method) ? undefined : Buffer.concat(chunks);
     const r = await handler(new Request(url, { method: req.method, headers: req.headers, body }), { ip: req.socket.remoteAddress });
-    res.writeHead(r.status, Object.fromEntries(r.headers));
+    const headers = {};
+    r.headers.forEach((v, k) => { if (k !== 'set-cookie') headers[k] = v; });
+    const cookies = r.headers.getSetCookie ? r.headers.getSetCookie() : [];
+    if (cookies.length) headers['set-cookie'] = cookies;   // varias cookies en una misma respuesta (sesión + limpiar la temporal)
+    res.writeHead(r.status, headers);
     return res.end(Buffer.from(await r.arrayBuffer()));
   }
   const file = path.join(here, url.pathname === '/' ? 'index.html' : url.pathname.slice(1));

@@ -3,6 +3,7 @@
 <head>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id=%22g%22%20x1=%220%22%20y1=%221%22%20x2=%221%22%20y2=%220%22%3E%3Cstop%20offset=%220%22%20stop-color=%22%23b91c1c%22/%3E%3Cstop%20offset=%22.55%22%20stop-color=%22%23dc2626%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22%23f43f5e%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width=%2264%22%20height=%2264%22%20rx=%2215%22%20fill=%22url%28%23g%29%22/%3E%3Cpath%20fill=%22%23fff%22%20d=%22M20%2015h25v7.5H28.5v6.5h14.5v7H28.5v6.5H45V50H20z%22/%3E%3C/svg%3E">
   <meta charset="UTF-8">
+  <!-- Si el backend está en otro dominio, pon su URL aquí (ej: https://api.tudominio.com). Vacío = mismo dominio -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ethos Chat Studio - SaaS Pro Edition</title>
   
@@ -65,6 +66,10 @@
       border-radius: 9999px;
     }
 
+    /* Durante la grabación el chat no muestra barra de desplazamiento (se vería sobre el fondo croma) */
+    .rec-no-scrollbar { scrollbar-width: none; }
+    .rec-no-scrollbar::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
     /* Phone Shadow & Red Glow */
     .phone-shadow {
       box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95), 0 0 35px -5px rgba(220, 38, 38, 0.25), 0 0 0 2px #262626;
@@ -96,25 +101,16 @@
     .wave-playing .wave-bar:nth-child(4) { animation: wavePulse 1s ease-in-out infinite 0.4s; }
     .wave-playing .wave-bar:nth-child(5) { animation: wavePulse 1s ease-in-out infinite 0.15s; }
 
-    /* Watermark Overlay */
+    /* Marca de agua (plan gratis): cuadrícula diagonal que cubre todo el teléfono */
     .watermark-overlay {
       position: absolute;
-      bottom: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      white-space: nowrap;
-      font-size: 17px;
-      font-weight: 900;
-      color: rgba(255, 255, 255, 0.55);
-      letter-spacing: 2px;
+      inset: 0;
+      z-index: 45;
       pointer-events: none;
-      z-index: 40;
-      text-transform: uppercase;
-      background: rgba(0, 0, 0, 0.55);
-      padding: 7px 18px;
-      border-radius: 12px;
-      backdrop-filter: blur(2px);
-      border: 1px solid rgba(255, 255, 255, 0.25);
+      user-select: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27160%27%3E%3Cg font-family=%27Arial Black,Arial,Helvetica,sans-serif%27 font-weight=%27900%27 font-size=%2726%27 letter-spacing=%273%27 text-anchor=%27middle%27%3E%3Ctext transform=%27translate(50 46) rotate(-30)%27 fill=%27%23000%27 fill-opacity=%27.35%27 x=%271.5%27 y=%271.5%27%3EETHOS%3C/text%3E%3Ctext transform=%27translate(50 46) rotate(-30)%27 fill=%27%23fff%27 fill-opacity=%27.34%27%3EETHOS%3C/text%3E%3Ctext transform=%27translate(150 126) rotate(-30)%27 fill=%27%23000%27 fill-opacity=%27.35%27 x=%271.5%27 y=%271.5%27%3EETHOS%3C/text%3E%3Ctext transform=%27translate(150 126) rotate(-30)%27 fill=%27%23fff%27 fill-opacity=%27.34%27%3EETHOS%3C/text%3E%3C/g%3E%3C/svg%3E");
+      background-size: 200px 160px;
+      background-repeat: repeat;
     }
 
     /* iOS Style Smooth Physics */
@@ -159,7 +155,7 @@
           <span id="user-display-email" class="text-[9px] text-neutral-400 truncate max-w-[100px]">Sin sesión</span>
         </div>
         <button id="btn-auth-trigger" onclick="openAuthModal()" class="ml-1 text-xs text-neutral-300 hover:text-white bg-neutral-800 hover:bg-neutral-700 px-2 py-1 rounded-lg border border-neutral-700 transition font-medium">
-          <i class="fa-solid fa-right-to-bracket text-red-500 mr-1"></i> <span id="lbl-auth-btn">Acceder</span>
+          <i class="fa-solid fa-right-to-bracket text-red-500 mr-1"></i> <span id="lbl-auth-btn">Entrar</span>
         </button>
       </div>
 
@@ -206,9 +202,8 @@
           </span>
         </div>
         <p id="lbl-user-plan-desc" class="text-[11px] text-neutral-400">
-          Inicia sesión para vincular tus licencias de Stripe y synchronizar proyectos.
+          Crea tu cuenta para guardar tu plan y desbloquear IA, más resolución y sin marca de agua.
         </p>
-        <button type="button" id="btn-manage-sub" onclick="openBillingPortal()" class="hidden w-full mt-2 py-2 rounded-xl border border-neutral-700 text-[11px] font-bold text-neutral-300 hover:text-white hover:border-red-500 transition">Gestionar o cancelar suscripción</button>
       </div>
 
       <!-- SECCIÓN 2: PROMPT IA GEMINI 3 Y SCRIPT PARSER -->
@@ -221,7 +216,21 @@
           <span class="text-[10px] bg-red-600/20 text-red-300 px-2 py-0.5 rounded-full font-bold border border-red-600/40">gemini-3-flash</span>
         </div>
 
-        <p id="ai-usage-note" class="text-[11px] text-neutral-400 leading-snug"><i class="fa-solid fa-lock text-red-500 mr-1"></i>La IA se ejecuta en nuestros servidores y es exclusiva del Plan Pro, con cuota diaria por usuario.</p>
+        <!-- Clave API local -->
+        <div class="bg-[#0a0a0a] rounded-xl p-3 border border-neutral-800 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-neutral-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-key text-red-500"></i> Gemini API Key:
+            </span>
+            <span id="api-key-status" class="text-[10px] font-bold text-neutral-500">No configurada</span>
+          </div>
+          <div class="flex gap-2">
+            <input type="password" id="input-user-api-key" placeholder="AIzaSy..." oninput="onApiKeyInputChanged()" class="flex-1 min-w-0 bg-neutral-900 border border-neutral-700/80 rounded-xl px-3 py-1.5 text-xs text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-red-500">
+            <button onclick="saveApiKeyLocally()" class="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs transition shadow-md shadow-red-600/20 shrink-0">
+              Guardar
+            </button>
+          </div>
+        </div>
 
         <!-- Pestañas de Generación -->
         <div class="flex bg-[#0a0a0a] p-1 rounded-xl border border-neutral-800">
@@ -307,7 +316,7 @@
             Ethos Rojo
           </button>
           <button onclick="applyColorPreset('whatsapp-green')" class="py-1.5 px-1.5 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-xl text-[10px] font-bold text-emerald-400 text-center transition truncate">
-            Verde
+            WhatsApp
           </button>
         </div>
 
@@ -406,13 +415,13 @@
             <i class="fa-brands fa-instagram text-base text-red-500"></i>
             Instagram
           </button>
-          <button id="btn-platform-whatsapp" disabled title="Próximamente" class="platform-btn opacity-40 cursor-not-allowed flex flex-col items-center gap-1 p-2 rounded-xl border border-neutral-700 bg-neutral-800/40 text-neutral-400 hover:text-white font-semibold text-[11px] transition">
+          <button id="btn-platform-whatsapp" onclick="setPlatform('whatsapp')" class="platform-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-neutral-700 bg-neutral-800/40 text-neutral-400 hover:text-white font-semibold text-[11px] transition">
             <i class="fa-brands fa-whatsapp text-base text-emerald-400"></i>
-            WhatsApp <span class="text-[8px] text-amber-400 font-bold">PRONTO</span>
+            WhatsApp
           </button>
-          <button id="btn-platform-imessage" disabled title="Próximamente" class="platform-btn opacity-40 cursor-not-allowed flex flex-col items-center gap-1 p-2 rounded-xl border border-neutral-700 bg-neutral-800/40 text-neutral-400 hover:text-white font-semibold text-[11px] transition">
+          <button id="btn-platform-imessage" onclick="setPlatform('imessage')" class="platform-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-neutral-700 bg-neutral-800/40 text-neutral-400 hover:text-white font-semibold text-[11px] transition">
             <i class="fa-solid fa-comment text-base text-blue-400"></i>
-            iMessage <span class="text-[8px] text-amber-400 font-bold">PRONTO</span>
+            iMessage
           </button>
         </div>
 
@@ -454,8 +463,6 @@
             <button id="btn-type-audio" onclick="setNewMsgType('audio')" class="flex-1 py-1 rounded-md text-neutral-400 hover:text-neutral-200 transition">Nota Voz</button>
             <button id="btn-type-image" onclick="setNewMsgType('image')" class="flex-1 py-1 rounded-md text-neutral-400 hover:text-neutral-200 transition">Imagen</button>
             <button id="btn-type-divider" onclick="setNewMsgType('divider')" class="flex-1 py-1 rounded-md text-neutral-400 hover:text-neutral-200 transition">Fecha</button>
-            <button id="btn-type-seen" onclick="setNewMsgType('seen')" class="flex-1 py-1 rounded-md text-neutral-400 hover:text-neutral-200 transition">Visto</button>
-            <button id="btn-type-missed" onclick="setNewMsgType('missed')" class="flex-1 py-1 rounded-md text-neutral-400 hover:text-neutral-200 transition">Llamada</button>
           </div>
 
           <!-- Seleccionar Emisor -->
@@ -467,7 +474,6 @@
           <!-- Inputs según tipo -->
           <div id="field-text-box">
             <textarea id="input-new-msg-text" rows="2" placeholder="Escribe el mensaje dramático..." class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-xs text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-red-500 resize-none"></textarea>
-            <input type="text" id="input-new-msg-reply" maxlength="120" placeholder="Responde a... (opcional: cita un mensaje)" class="mt-2 w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-1.5 text-xs text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-red-500">
           </div>
 
           <div id="field-image-box" class="hidden space-y-2">
@@ -519,7 +525,7 @@
         <span class="text-neutral-700 hidden sm:inline">|</span>
         <div class="flex items-center gap-1">
           <button onclick="changeZoom(-0.1)" class="w-6 h-6 bg-neutral-800 hover:bg-neutral-700 rounded-lg flex items-center justify-center font-bold text-neutral-200"><i class="fa-solid fa-minus text-[10px]"></i></button>
-          <span id="zoom-percentage-text" class="w-12 text-center font-bold text-red-500">70%</span>
+          <span id="zoom-percentage-text" class="w-12 text-center font-bold text-red-500">100%</span>
           <button onclick="changeZoom(0.1)" class="w-6 h-6 bg-neutral-800 hover:bg-neutral-700 rounded-lg flex items-center justify-center font-bold text-neutral-200"><i class="fa-solid fa-plus text-[10px]"></i></button>
           <button onclick="resetZoom()" class="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-[10px] font-semibold text-neutral-300">Ajustar</button>
         </div>
@@ -532,9 +538,7 @@
         <div id="phone-frame" class="w-[340px] sm:w-[360px] h-[680px] bg-black rounded-[40px] phone-shadow flex flex-col overflow-hidden relative">
           
           <!-- MARCA DE AGUA (SOLO EN PLAN GRATIS) -->
-          <div id="watermark-element" class="watermark-overlay">
-            Ethos Chat Studio
-          </div>
+          <div id="watermark-element" class="watermark-overlay" aria-hidden="true"></div>
 
           <!-- Dynamic Notch -->
           <div id="phone-notch" class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-black rounded-b-xl z-40 flex items-center justify-center">
@@ -612,59 +616,121 @@
 
   </div>
 
-  <!-- MODAL DE INICIO DE SESIÓN / REGISTRO -->
-  <div id="modal-auth" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-[#121212] border border-neutral-800 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
-      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-neutral-400 hover:text-white text-lg w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center transition">
+  <!-- MODAL DE CUENTA (entrar / crear cuenta / recuperar / mi cuenta) -->
+  <div id="modal-auth" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+    <div class="bg-[#121212] border border-neutral-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative max-h-[94vh] overflow-y-auto">
+      <button type="button" onclick="closeAuthModal()" class="absolute top-4 right-4 text-neutral-400 hover:text-white text-lg w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center transition" aria-label="Cerrar">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
-      <div class="text-center space-y-2">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-red-700 via-red-600 to-rose-500 flex items-center justify-center font-black text-white text-xl shadow-lg shadow-red-600/30 mx-auto">
-          E
-        </div>
-        <h2 id="auth-modal-title" class="text-xl font-extrabold text-white">Inicia Sesión en Ethos</h2>
-        <p class="text-xs text-neutral-400">Accede a tus suscripciones de Stripe, sincroniza proyectos y activa la IA.</p>
-      </div>
-      <p id="auth-context" class="hidden text-[11px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-2 text-center"></p>
-
-      <!-- Selector Pestañas Auth -->
-      <div id="auth-tabs" class="flex bg-[#0a0a0a] p-1 rounded-xl border border-neutral-800 text-xs font-bold">
-        <button id="auth-tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-lg bg-red-600 text-white transition">Inicia Sesión</button>
-        <button id="auth-tab-register" onclick="switchAuthTab('register')" class="flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition">Registrarse</button>
+      <div class="text-center space-y-1.5">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-red-700 via-red-600 to-rose-500 flex items-center justify-center font-black text-white text-xl shadow-lg shadow-red-600/30 mx-auto">E</div>
+        <h2 id="auth-title" class="text-xl font-extrabold text-white">Entra en Ethos</h2>
+        <p id="auth-subtitle" class="text-xs text-neutral-400"></p>
       </div>
 
-      <form onsubmit="handleAuthSubmit(event)" novalidate class="space-y-3 pt-1">
-        <div id="auth-field-name" class="hidden space-y-1">
-          <label class="block text-[11px] font-bold text-neutral-300">Nombre Completo</label>
-          <input type="text" id="auth-input-name" autocomplete="name" placeholder="Tu Nombre" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500">
-        </div>
+      <div id="auth-msg" role="alert" aria-live="polite" class="hidden text-xs rounded-xl px-3 py-2.5 leading-snug"></div>
 
-        <div id="auth-field-email" class="space-y-1">
-          <label class="block text-[11px] font-bold text-neutral-300">Correo Electrónico</label>
-          <input type="email" id="auth-input-email" autocomplete="email" placeholder="tu@email.com" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500">
-        </div>
+      <div id="auth-tabs" class="grid grid-cols-2 gap-1 bg-[#0a0a0a] p-1 rounded-xl border border-neutral-800 text-xs font-bold">
+        <button type="button" id="tab-login" onclick="showAuthView('login')" class="py-2 rounded-lg transition">Iniciar sesión</button>
+        <button type="button" id="tab-register" onclick="showAuthView('register')" class="py-2 rounded-lg transition">Crear cuenta</button>
+      </div>
 
-        <div id="auth-field-password" class="space-y-1">
-          <label class="block text-[11px] font-bold text-neutral-300">Contraseña</label>
-          <div class="relative">
-            <input type="password" id="auth-input-password" autocomplete="current-password" placeholder="Mínimo 8 caracteres" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl pl-3 pr-14 py-2 text-xs text-white focus:outline-none focus:border-red-500">
-            <button type="button" id="auth-toggle-pw" onclick="toggleAuthPassword()" class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-neutral-400 hover:text-white px-1.5">Ver</button>
-          </div>
-          <button type="button" id="auth-forgot" onclick="switchAuthTab('forgot')" class="text-[11px] font-bold text-red-400 hover:underline">¿Olvidaste tu contraseña?</button>
-        </div>
-
-        <p id="auth-error" class="hidden text-[11px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded-xl px-3 py-2"></p>
-
-        <button type="submit" id="auth-btn-submit" class="w-full py-2.5 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white font-extrabold rounded-xl text-xs transition shadow-lg shadow-red-600/30">
-          Iniciar Sesión
+<!-- CONTINUAR CON GOOGLE -->
+      <div id="google-block" class="hidden space-y-3">
+        <button type="button" id="btn-google" onclick="startGoogleLogin()" class="w-full flex items-center justify-center gap-3 py-2.5 bg-white hover:bg-neutral-100 text-neutral-800 font-bold rounded-xl text-sm border border-neutral-300 transition">
+          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          <span>Continuar con Google</span>
         </button>
-        <p id="auth-legal" class="hidden text-center text-[10px] text-neutral-500">Al crear tu cuenta aceptas los <a href="/legal#terminos" target="_blank" class="underline hover:text-white">Términos</a> y la <a href="/legal#privacidad" target="_blank" class="underline hover:text-white">Política de privacidad</a>.</p>
-        <p class="text-center text-[11px] text-neutral-400 pt-1">
-          <span id="auth-switch-text">¿No tienes cuenta?</span>
-          <button type="button" id="auth-switch-btn" onclick="switchAuthTab(state.authTab === 'login' ? 'register' : 'login')" class="text-red-400 font-bold hover:underline">Regístrate</button>
-        </p>
+        <p class="text-[10px] text-neutral-500 text-center leading-snug">Al continuar con Google aceptas los términos y la política de privacidad.</p>
+        <div class="flex items-center gap-3 text-[10px] text-neutral-500"><span class="flex-1 h-px bg-neutral-800"></span>o con tu email<span class="flex-1 h-px bg-neutral-800"></span></div>
+      </div>
+
+      <!-- INICIAR SESIÓN -->
+      <form id="view-login" onsubmit="submitLogin(event)" class="space-y-3" novalidate>
+        <div class="space-y-1"><label for="login-email" class="text-[11px] font-bold text-neutral-300">Email</label>
+          <input id="login-email" type="email" name="email" autocomplete="email" inputmode="email" placeholder="tu@email.com" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-red-500 transition" required></div>
+        <div class="space-y-1"><label for="login-pass" class="text-[11px] font-bold text-neutral-300">Contraseña</label>
+          <div class="relative"><input id="login-pass" type="password" name="password" autocomplete="current-password" placeholder="Tu contraseña" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-red-500 transition pr-10" required><button type="button" onclick="togglePass('login-pass')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-200 text-sm" aria-label="Mostrar u ocultar contraseña"><i class="fa-regular fa-eye"></i></button></div></div>
+        <div class="text-right"><button type="button" onclick="showAuthView('forgot')" class="text-[11px] text-sky-400 hover:text-sky-300">¿Has olvidado tu contraseña?</button></div>
+        <button type="submit" id="btn-login" class="w-full py-2.5 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 disabled:opacity-60 text-white font-extrabold rounded-xl text-sm transition shadow-lg shadow-red-600/30">Entrar</button>
       </form>
+
+      <!-- CREAR CUENTA -->
+      <form id="view-register" onsubmit="submitRegister(event)" class="space-y-3 hidden" novalidate>
+        <div class="space-y-1"><label for="reg-name" class="text-[11px] font-bold text-neutral-300">Nombre <span class="text-neutral-500 font-normal">(opcional)</span></label>
+          <input id="reg-name" type="text" name="name" autocomplete="name" maxlength="60" placeholder="Cómo quieres que te llamemos" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-red-500 transition"></div>
+        <div class="space-y-1"><label for="reg-email" class="text-[11px] font-bold text-neutral-300">Email</label>
+          <input id="reg-email" type="email" name="email" autocomplete="email" inputmode="email" placeholder="tu@email.com" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-red-500 transition" required></div>
+        <div class="space-y-1"><label for="reg-pass" class="text-[11px] font-bold text-neutral-300">Contraseña</label>
+          <div class="relative"><input id="reg-pass" type="password" name="new-password" autocomplete="new-password" minlength="8" placeholder="Mínimo 8 caracteres" oninput="updateStrength('reg-pass','reg-strength')" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-red-500 transition pr-10" required><button type="button" onclick="togglePass('reg-pass')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-200 text-sm" aria-label="Mostrar u ocultar contraseña"><i class="fa-regular fa-eye"></i></button></div>
+          <div class="h-1 rounded-full bg-neutral-800 overflow-hidden"><div id="reg-strength" class="h-full w-0 transition-all"></div></div></div>
+        <label class="flex items-start gap-2 text-[11px] text-neutral-400 leading-snug cursor-pointer">
+          <input id="reg-terms" type="checkbox" class="mt-0.5 accent-red-600">
+          <span>He leído y acepto los <button type="button" onclick="openLegalModal('terms')" class="text-sky-400 hover:text-sky-300 underline">términos</button> y la <button type="button" onclick="openLegalModal('privacy')" class="text-sky-400 hover:text-sky-300 underline">política de privacidad</button>.</span>
+        </label>
+        <button type="submit" id="btn-register" class="w-full py-2.5 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 disabled:opacity-60 text-white font-extrabold rounded-xl text-sm transition shadow-lg shadow-red-600/30">Crear mi cuenta</button>
+        <p class="text-[10px] text-neutral-500 text-center">Tu plan quedará guardado en tu cuenta y podrás entrar desde cualquier dispositivo.</p>
+      </form>
+
+      <!-- RECUPERAR CONTRASEÑA -->
+      <form id="view-forgot" onsubmit="submitForgot(event)" class="space-y-3 hidden" novalidate>
+        <div class="space-y-1"><label for="forgot-email" class="text-[11px] font-bold text-neutral-300">Email de tu cuenta</label>
+          <input id="forgot-email" type="email" autocomplete="email" inputmode="email" placeholder="tu@email.com" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-red-500 transition" required></div>
+        <button type="submit" id="btn-forgot" class="w-full py-2.5 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 disabled:opacity-60 text-white font-extrabold rounded-xl text-sm transition shadow-lg shadow-red-600/30">Enviarme el enlace</button>
+        <button type="button" onclick="showAuthView('login')" class="w-full text-[11px] text-neutral-400 hover:text-white">← Volver a iniciar sesión</button>
+      </form>
+
+      <!-- NUEVA CONTRASEÑA (desde el enlace del email) -->
+      <form id="view-reset" onsubmit="submitReset(event)" class="space-y-3 hidden" novalidate>
+        <div class="space-y-1"><label for="reset-pass" class="text-[11px] font-bold text-neutral-300">Nueva contraseña</label>
+          <div class="relative"><input id="reset-pass" type="password" autocomplete="new-password" minlength="8" placeholder="Mínimo 8 caracteres" oninput="updateStrength('reset-pass','reset-strength')" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-red-500 transition pr-10" required><button type="button" onclick="togglePass('reset-pass')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-200 text-sm" aria-label="Mostrar u ocultar contraseña"><i class="fa-regular fa-eye"></i></button></div>
+          <div class="h-1 rounded-full bg-neutral-800 overflow-hidden"><div id="reset-strength" class="h-full w-0 transition-all"></div></div></div>
+        <button type="submit" id="btn-reset" class="w-full py-2.5 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 disabled:opacity-60 text-white font-extrabold rounded-xl text-sm transition shadow-lg shadow-red-600/30">Guardar contraseña nueva</button>
+      </form>
+
+      <!-- MI CUENTA -->
+      <div id="view-account" class="space-y-3 hidden">
+        <div class="bg-[#0a0a0a] border border-neutral-800 rounded-2xl p-3 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <span id="acc-email" class="text-sm font-bold text-white truncate"></span>
+            <span id="acc-plan" class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-300 border border-neutral-700 shrink-0"></span>
+          </div>
+          <p id="acc-plan-note" class="text-[11px] text-neutral-400"></p>
+          <p id="acc-google" class="hidden text-[11px] text-sky-300"><i class="fa-brands fa-google mr-1"></i> Cuenta conectada con Google</p>
+          <div id="acc-verify" class="hidden flex items-center justify-between gap-2 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-2 text-[11px] text-amber-200">
+            <span>Confirma tu email para poder pagar.</span>
+            <button type="button" onclick="resendVerification()" class="font-bold text-amber-300 hover:text-amber-100 underline shrink-0">Reenviar</button>
+          </div>
+        </div>
+        <button type="button" onclick="closeAuthModal();openPricingModal()" class="w-full py-2.5 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 disabled:opacity-60 text-white font-extrabold rounded-xl text-sm transition shadow-lg shadow-red-600/30"><i class="fa-solid fa-crown mr-1.5"></i> Ver planes</button>
+        <button type="button" id="btn-portal" onclick="manageSubscription()" class="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-xl text-xs border border-neutral-700 transition hidden"><i class="fa-solid fa-credit-card mr-1.5 text-sky-400"></i> Gestionar suscripción (tarjeta, facturas, cancelar)</button>
+
+        <details class="bg-[#0a0a0a] border border-neutral-800 rounded-xl">
+          <summary id="cp-summary" class="px-3 py-2.5 text-xs font-bold text-neutral-300 cursor-pointer">Cambiar contraseña</summary>
+          <form onsubmit="submitChangePassword(event)" class="p-3 pt-1 space-y-2" novalidate>
+            <input id="cp-current" type="password" autocomplete="current-password" placeholder="Contraseña actual" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-red-500 transition">
+            <input id="cp-new" type="password" autocomplete="new-password" minlength="8" placeholder="Contraseña nueva (mínimo 8)" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-red-500 transition">
+            <button type="submit" id="btn-cp" class="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-xl text-xs border border-neutral-700 transition">Guardar</button>
+          </form>
+        </details>
+
+        <button type="button" onclick="logout(false)" class="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-xl text-xs border border-neutral-700 transition"><i class="fa-solid fa-right-from-bracket mr-1.5"></i> Cerrar sesión</button>
+        <button type="button" onclick="logout(true)" class="w-full text-[11px] text-neutral-500 hover:text-neutral-300">Cerrar sesión en todos los dispositivos</button>
+
+        <details class="border border-rose-900/50 rounded-xl">
+          <summary class="px-3 py-2.5 text-xs font-bold text-rose-400 cursor-pointer">Eliminar mi cuenta</summary>
+          <form onsubmit="submitDelete(event)" class="p-3 pt-1 space-y-2" novalidate>
+            <p id="del-hint" class="text-[11px] text-neutral-400">Se borrarán tu cuenta y tus datos. Si tienes una suscripción activa, cancélala antes.</p>
+            <input id="del-pass" type="password" autocomplete="current-password" placeholder="Tu contraseña para confirmar" class="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-red-500 transition">
+            <button type="submit" id="btn-del" class="w-full py-2.5 bg-rose-700 hover:bg-rose-600 text-white font-bold rounded-xl text-xs transition">Eliminar definitivamente</button>
+          </form>
+        </details>
+      </div>
+
+      <p id="auth-backend-note" class="hidden text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 leading-snug text-center">
+        Las cuentas necesitan la web publicada. Abre la dirección de tu sitio (no el archivo suelto) para entrar o crear cuenta.
+      </p>
     </div>
   </div>
 
@@ -683,6 +749,10 @@
         <p class="text-xs text-neutral-400">Elige qué quieres grabar y sigue los 2 pasos para tener un vídeo fluido en HD:</p>
       </div>
 
+      <p id="rec-unsupported" class="hidden text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 leading-snug">
+        Tu navegador no permite grabar la pestaña (Safari y los móviles no lo soportan). Usa Chrome o Edge de escritorio, o descarga la captura en PNG.
+      </p>
+
       <!-- SELECTOR DE MODO DE GRABACIÓN -->
       <div class="space-y-2">
         <span class="text-[10px] font-extrabold uppercase tracking-wider text-neutral-500 block">Modo de grabación</span>
@@ -697,24 +767,39 @@
           </button>
         </div>
         <label class="flex items-start gap-2 bg-[#0a0a0a] border border-neutral-800 rounded-2xl p-3 cursor-pointer">
-          <input id="rec-chroma" type="checkbox" checked class="mt-0.5 accent-emerald-500">
+          <input id="rec-sound" type="checkbox" checked class="mt-0.5 accent-emerald-500">
           <span class="text-[11px] text-neutral-300 leading-snug">
-            <strong class="text-white">Fondo verde croma</strong> (recomendado). Las esquinas y bordes salen en verde puro para quitar el fondo en tu editor con "Croma / Chroma Key" sin deformar los contornos.
+            <strong class="text-white">Sonidos de mensaje</strong>. Añade un "pop" al enviar y un "ding" al recibir; quedan dentro del vídeo.
           </span>
         </label>
-        <label class="flex items-start gap-2 bg-[#0a0a0a] border border-neutral-800 rounded-2xl p-3 cursor-pointer">
-          <input id="rec-bg-green" type="checkbox" checked class="mt-0.5 accent-emerald-500">
-          <span class="text-[11px] text-neutral-300 leading-snug">
-            <strong class="text-white">Fondo de la conversación transparente</strong>. Mientras grabas, el fondo del chat se pinta de verde puro: en tu editor quitas el verde con "Croma" y se ve tu gameplay detrás (solo quedan los mensajes). Requiere el fondo verde croma activado.
-          </span>
-        </label>
-        <label class="block bg-[#0a0a0a] border border-neutral-800 rounded-2xl p-3">
-          <span class="text-[11px] font-bold text-white block mb-1.5">Tamaño del vídeo</span>
-          <select id="rec-size" class="w-full bg-[#111] border border-neutral-700 rounded-xl px-2 py-1.5 text-[11px] text-white focus:outline-none focus:border-emerald-500">
-            <option value="shorts">Vertical 9:16 para Shorts (1080×1920)</option>
-            <option value="native">Solo el móvil, tamaño original</option>
+<div class="bg-[#0a0a0a] border border-neutral-800 rounded-2xl p-3 space-y-2">
+          <label for="rec-bg" class="text-[11px] font-bold text-white block">Fondo del vídeo</label>
+          <select id="rec-bg" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+            <option value="asis">Tal cual (como antes): el color de fondo que elegiste</option>
+            <option value="green">Verde croma: todo el fondo en verde puro</option>
+            <option value="black">Negro puro: para la mezcla "Pantalla / Aclarar"</option>
           </select>
-        </label>
+          <p class="text-[10px] text-neutral-400 leading-snug">
+            Para ver tu gameplay detrás: en el editor aplica <strong class="text-neutral-200">Croma / Chroma Key</strong> al verde
+            (o pon la mezcla <strong class="text-neutral-200">Pantalla</strong> al negro). Solo desaparece el fondo; el perfil y las burbujas se quedan.
+          </p>
+        </div>
+<div class="bg-[#0a0a0a] border border-neutral-800 rounded-2xl p-3 space-y-2">
+          <label for="rec-format" class="text-[11px] font-bold text-white block">Tamaño del vídeo</label>
+          <select id="rec-format" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+            <option value="native">Ajustado al teléfono (más nítido)</option>
+            <option value="vertical">Vertical 9:16 · 1080×1920 (Shorts / TikTok / Reels)</option>
+          </select>
+          <p class="text-[10px] text-neutral-400 leading-snug">
+            En vertical, el teléfono se centra en un lienzo 9:16 del color de fondo elegido, listo para poner sobre tu gameplay.
+            Si tu pantalla es pequeña el vídeo se amplía y queda algo menos nítido.
+          </p>
+        </div>
+        <p id="rec-free-note" class="hidden text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 leading-snug">
+          <i class="fa-solid fa-lock mr-1"></i> Plan gratis: vídeo completo con marca de agua. El fondo transparente (croma/negro), el formato
+          vertical 9:16, el modo "últimos 3 mensajes" y los sonidos son de los planes Creador y Pro.
+          <button type="button" onclick="closeVideoRecordModal();openPricingModal()" class="underline font-bold ml-1">Ver planes</button>
+        </p>
       </div>
 
       <div class="space-y-3 text-xs">
@@ -745,7 +830,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE PRECIOS Y SUSCRIPCIONES (CON ENLACES STRIPE QUE FUNCIONAN PERFECTAMENTE) -->
+  <!-- MODAL DE PRECIOS Y SUSCRIPCIONES -->
   <div id="modal-pricing" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-[#121212] border border-neutral-800 rounded-3xl max-w-4xl w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl relative">
       <button onclick="closePricingModal()" class="absolute top-5 right-5 text-neutral-400 hover:text-white text-lg w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center transition">
@@ -775,8 +860,7 @@
             <ul class="space-y-2 text-xs text-neutral-300 pt-2 border-t border-neutral-800">
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Hasta 12 mensajes por chat</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Captura PNG estándar (1x)</li>
-              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Animación básica en vivo</li>
-              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> 3 grabaciones de vídeo al día</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Vídeo básico (sin fondo transparente ni sonidos)</li>
               <li class="flex items-center gap-2 text-neutral-500"><i class="fa-solid fa-xmark text-rose-500 text-[10px]"></i> Marca de agua Ethos</li>
               <li class="flex items-center gap-2 text-neutral-500"><i class="fa-solid fa-xmark text-rose-500 text-[10px]"></i> Sin IA Gemini automática</li>
             </ul>
@@ -797,14 +881,14 @@
             <p class="text-[11px] text-neutral-400">Perfecto para creadores frecuentes de TikTok y YouTube Shorts.</p>
             <ul class="space-y-2 text-xs text-neutral-200 pt-2 border-t border-neutral-800">
               <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Sin marca de agua</li>
-              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Mensajes y grabaciones ilimitados</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Vídeo con fondo transparente (croma/negro) + sonidos</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Hasta 60 mensajes por chat · modo "últimos 3 mensajes"</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Exportación en calidad 2K</li>
-              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Plantilla Instagram (WhatsApp e iMessage: próximamente)</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Todas las plantillas (IG, WA, iOS)</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Licencia de uso para redes</li>
             </ul>
           </div>
-          <button type="button" onclick="startCheckout('creador')" class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-extrabold rounded-xl text-xs text-center transition shadow-lg shadow-sky-600/30 block cursor-pointer">            Suscribirse • €6,99/mes
-          </button>
+          <button type="button" onclick="startCheckout('creador')" class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-extrabold rounded-xl text-xs text-center transition shadow-lg shadow-sky-600/30 block">Suscribirse • €6,99/mes</button>
         </div>
 
         <!-- PLAN PRO AGENCIA (€14,99/mes) -->
@@ -823,21 +907,31 @@
             </div>
             <p class="text-[11px] text-neutral-300">Potencia completa con IA Gemini integrada y máxima calidad Retina.</p>
             <ul class="space-y-2 text-xs text-neutral-100 pt-2 border-t border-red-900/60">
-              <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-sparkles text-amber-400 text-[10px]"></i> IA Gemini 3 incluida (cuota diaria)</li>
+              <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-sparkles text-amber-400 text-[10px]"></i> IA Gemini 3 ilimitada</li>
               <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-check text-red-500 text-[10px]"></i> Exportación 4K Ultra HD (3x)</li>
-              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-red-500 text-[10px]"></i> Guardado/Carga de proyectos JSON</li>
+              <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-check text-red-500 text-[10px]"></i> Hasta 500 mensajes por chat</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-red-500 text-[10px]"></i> Guardado/Carga de JSON ilimitado</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-red-500 text-[10px]"></i> Sin marca de agua + Vídeo Ilimitado</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-red-500 text-[10px]"></i> Licencia Comercial Completa</li>
             </ul>
           </div>
-          <button type="button" onclick="startCheckout('pro')" class="w-full py-2.5 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white font-extrabold rounded-xl text-xs text-center transition shadow-lg shadow-red-600/40 transform active:scale-95 block cursor-pointer">
-            Activar Plan Pro • €14,99/mes
-          </button>
+          <button type="button" onclick="startCheckout('pro')" class="w-full py-2.5 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white font-extrabold rounded-xl text-xs text-center transition shadow-lg shadow-red-600/40 transform active:scale-95 block">Activar Plan Pro • €14,99/mes</button>
         </div>
 
       </div>
 
-      <p class="text-center text-[11px] text-neutral-500">Tu plan se activa automáticamente al confirmarse el pago con Stripe. Pagas con la cuenta con la que has iniciado sesión.</p>
+      <!-- CÓDIGO PROMOCIONAL + AVISO DE CUENTA -->
+      <p id="pricing-account-note" class="text-center text-[11px] text-neutral-400"></p>
+      <div class="bg-[#0a0a0a] rounded-2xl p-4 border border-neutral-800 space-y-3 pt-3">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold text-neutral-200 flex items-center gap-2"><i class="fa-solid fa-ticket text-red-500"></i> ¿Tienes un código promocional?</span>
+          <span class="text-[10px] text-neutral-500">Se aplica a tu cuenta</span>
+        </div>
+        <div class="flex gap-2">
+          <input type="text" id="input-promo-code" autocomplete="off" spellcheck="false" placeholder="Escribe tu código" class="flex-1 bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-red-500 font-mono">
+          <button type="button" onclick="redeemPromo()" class="px-5 py-2 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-xl text-xs border border-neutral-700 transition">Aplicar</button>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -854,10 +948,6 @@
   </div>
 
   <!-- NOTIFICACIÓN TOAST -->
-  <div class="fixed bottom-1 right-3 z-30 text-[9px] text-neutral-500"><a href="/legal#terminos" target="_blank" class="hover:text-white">Términos</a> · <a href="/legal#privacidad" target="_blank" class="hover:text-white">Privacidad</a> · <a href="/legal#aviso" target="_blank" class="hover:text-white">Aviso legal</a></div>
-  <div id="verify-banner" class="hidden fixed bottom-5 left-5 max-w-xs bg-amber-500/15 border border-amber-500/40 text-amber-200 text-[11px] font-bold px-3 py-2 rounded-2xl z-40">
-    Confirma tu correo: te enviamos un enlace. <button onclick="resendVerify()" class="underline">Reenviar</button>
-  </div>
   <div id="toast" class="fixed bottom-5 right-5 bg-neutral-900 border border-neutral-800 text-white px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
     <i id="toast-icon" class="fa-solid fa-circle-check text-red-500"></i>
     <span id="toast-msg">Notificación</span>
@@ -865,12 +955,6 @@
 
   <!-- LÓGICA JAVASCRIPT COMPLETA Y ROBUSTA -->
   <script>
-    // REDIRECCIÓN SEGURA A STRIPE CHECKOUT
-    function redirectToStripe(e, url) {
-      if (e) e.stopPropagation();
-      window.open(url, '_blank');
-    }
-
     // ESTADO GLOBAL CON USUARIOS Y SUSCRIPCIÓN SAAS
     const state = {
       currentUser: {
@@ -882,7 +966,7 @@
       authTab: 'login',
       platform: 'instagram',
       viewMode: 'phone',
-      zoom: 0.7,
+      zoom: 1.0,
       autoTab: 'ai',
       isAnimating: false,
       animIndex: 0,
@@ -918,309 +1002,521 @@
     };
 
     window.addEventListener('DOMContentLoaded', () => {
+      loadSavedApiKey();
       renderAll();
-      updateZoomUI();
-      loadStoredSession();
-      checkStripeRedirect();
-      handleUrlActions();
+      updateAuthUI();
+      initBackend();
     });
 
-    // SISTEMA DE SESIÓN / AUTENTICACIÓN
-    // ===== API, VALIDACIÓN Y SANEADO DE DATOS =====
-    async function api(path, body) {
-      if (location.protocol === 'file:') throw new Error('Abre la app desde el servidor (http://localhost:3000), no haciendo doble clic en el archivo HTML.');
-      let r;
-      try {
-        r = await fetch(path, {
-          method: body === undefined ? 'GET' : 'POST',
-          headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
-          body: body === undefined ? undefined : JSON.stringify(body),
-          credentials: 'same-origin'
-        });
-      } catch (e) { throw new Error('No se pudo conectar con el servidor. ¿Está en marcha (npm start)?'); }
-      let j = null; try { j = await r.json(); } catch (e) {}
-      if (j === null || typeof j !== 'object') {
-        // La respuesta no es del servidor de Ethos (p. ej. Live Server, python -m http.server o un proxy)
-        throw Object.assign(new Error(`El servidor respondió ${r.status} pero no es el de Ethos. Ejecuta "npm start" y abre http://localhost:3000 (no uses Live Server ni otro servidor).`), { status: r.status || 500 });
+    // =====================================================================
+    // SEGURIDAD: saneado de cualquier dato externo (JSON, IA, entradas)
+    // =====================================================================
+    const LIMITS = { text: 2000, msgs: 500 };
+    const ALLOWED_REACTIONS = ['❤️', '😂', '🔥', '💀', '😭', '😡'];
+    const PLATFORMS = ['instagram', 'whatsapp', 'imessage'];
+    const VIEW_MODES = ['phone', 'expanded', 'bubbles'];
+    const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+    const GRADIENT_RE = /^linear-gradient\(\s*\d{1,3}deg\s*(,\s*#[0-9a-fA-F]{6}){2,6}\s*\)$/;
+    const PLACEHOLDER_AVATAR = 'data:image/svg+xml,' + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' fill='#404040'/><circle cx='20' cy='15' r='7' fill='#737373'/><path d='M6 40c2-10 26-10 28 0z' fill='#737373'/></svg>");
+
+    // ---- Límites por plan (se aplican en el navegador; ver nota en LEEME) ----
+    const PLAN_LIMITS = {
+      free:    { maxMessages: 12,  exportScale: 1, videoKey: false, videoLast3: false, videoSound: false, videoVertical: false },
+      creador: { maxMessages: 60,  exportScale: 2, videoKey: true,  videoLast3: true,  videoSound: true,  videoVertical: true },
+      pro:     { maxMessages: 500, exportScale: 3, videoKey: true,  videoLast3: true,  videoSound: true,  videoVertical: true }
+    };
+    function planLimits() { return PLAN_LIMITS[state.currentUser.plan] || PLAN_LIMITS.free; }
+    function toastMessageLimit() {
+      const max = planLimits().maxMessages;
+      if (state.currentUser.plan === 'free') {
+        showToast('Plan gratis: máximo ' + max + ' mensajes por chat. Suscríbete para tener más.', true);
+        openPricingModal();
+      } else {
+        showToast('Tu plan permite hasta ' + max + ' mensajes por chat.', true);
       }
-      if (!r.ok) throw Object.assign(new Error(j.error || `Error del servidor (${r.status})`), { code: j.code, status: r.status });
-      return j;
     }
 
-    const MSG_TYPES = ['text', 'audio', 'image', 'divider', 'seen', 'missed'];
-    const REACTIONS = ['❤️', '😂', '🔥', '💀', '😭', '😡'];
-    const TIME_RE = /^\d{1,2}:\d{2}$/;
-    const clip = (v, n) => (typeof v === 'string' ? v.slice(0, n) : '');
+    function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 
-    // Solo http(s) o data:image raster. Devuelve '' si no es válida (nunca javascript:, svg, etc.)
+    function mk(tag, cls, text) {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      return e;
+    }
+
+    function cleanStr(v, max) {
+      return typeof v === 'string' ? v.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').slice(0, max) : '';
+    }
+
+    // Solo http(s) o imágenes data: raster. Nada de javascript:, svg, etc.
     function safeImgUrl(u) {
-      if (typeof u !== 'string' || u.length > 3000000) return '';
-      if (/^data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=]+$/.test(u)) return u;
-      try { const x = new URL(u); return (x.protocol === 'https:' || x.protocol === 'http:') && u.length < 2000 ? x.href : ''; } catch (e) { return ''; }
+      if (typeof u !== 'string') return '';
+      const v = u.trim();
+      if (/^data:image\/(png|jpe?g|gif|webp|avif);base64,[A-Za-z0-9+/=]+$/i.test(v)) return v.length < 7000000 ? v : '';
+      try {
+        const x = new URL(v);
+        return (x.protocol === 'https:' || x.protocol === 'http:') ? x.href : '';
+      } catch (e) { return ''; }
     }
-    function safeColor(v, fallback, allowGradient) {
-      if (typeof v !== 'string') return fallback;
-      if (/^#[0-9a-f]{6}$/i.test(v)) return v;
-      if (allowGradient && /^linear-gradient\(135deg(, ?#[0-9a-f]{6}){2,4}\)$/i.test(v)) return v;
-      return fallback;
+
+    function setSafeImg(img, url) {
+      img.src = safeImgUrl(url) || PLACEHOLDER_AVATAR;
+      img.onerror = () => { img.onerror = null; img.src = PLACEHOLDER_AVATAR; };
     }
-    function sanitizeMessages(list) {
-      if (!Array.isArray(list)) return [];
-      const stamp = Date.now().toString(36);
-      return list.slice(0, 200).map((m, i) => {
-        if (!m || typeof m !== 'object') return null;
-        const type = MSG_TYPES.includes(m.type) ? m.type : 'text';
-        const o = {
-          id: 'm' + stamp + i, type, sender: m.sender === 'me' ? 'me' : 'them',
-          time: TIME_RE.test(m.time) ? m.time : state.phoneBar.time,
-          reaction: REACTIONS.includes(m.reaction) ? m.reaction : ''
-        };
-        if (type === 'text') {
-          o.text = clip(m.text, 500); if (!o.text.trim()) return null;
-          const r = clip(m.replyTo, 120); if (r) o.replyTo = r;
-        } else if (type === 'divider' || type === 'seen' || type === 'missed') {
-          o.text = clip(m.text, 40) || { divider: 'HOY', seen: 'Visto', missed: 'Llamada perdida' }[type];
-        } else if (type === 'audio') {
-          o.audioSpec = TIME_RE.test(m.audioSpec) ? m.audioSpec : '0:14';
-        } else if (type === 'image') {
-          o.imgUrl = safeImgUrl(m.imgUrl); if (!o.imgUrl) return null;
-        }
-        return o;
-      }).filter(Boolean);
+
+    function safeHex(v, fallback) { return typeof v === 'string' && HEX_RE.test(v) ? v : fallback; }
+    function safeBg(v, fallback) { return typeof v === 'string' && (HEX_RE.test(v) || GRADIENT_RE.test(v)) ? v : fallback; }
+
+    function sanitizeMessage(m, idx) {
+      if (!m || typeof m !== 'object') return null;
+      const type = ['text', 'image', 'audio', 'divider'].includes(m.type) ? m.type : 'text';
+      const out = {
+        id: 'm' + Date.now().toString(36) + '_' + idx,
+        type: type,
+        sender: m.sender === 'me' ? 'me' : 'them',
+        time: cleanStr(m.time, 12) || state.phoneBar.time,
+        reaction: ALLOWED_REACTIONS.includes(m.reaction) ? m.reaction : ''
+      };
+      if (type === 'text' || type === 'divider') {
+        out.text = cleanStr(m.text, LIMITS.text);
+        if (!out.text) return null;
+      } else if (type === 'image') {
+        out.imgUrl = safeImgUrl(m.imgUrl);
+        if (!out.imgUrl) return null;
+      } else if (type === 'audio') {
+        out.audioSpec = (typeof m.audioSpec === 'string' && /^\d{1,2}:\d{2}$/.test(m.audioSpec)) ? m.audioSpec : '0:14';
+      }
+      return out;
     }
-    function sanitizeProject(d) {
-      if (!d || typeof d !== 'object' || !d.profile || typeof d.profile !== 'object' || !Array.isArray(d.messages)) return null;
-      const c = d.customColors && typeof d.customColors === 'object' ? d.customColors : {};
-      const cur = state.customColors;
+
+    // Devuelve solo campos conocidos y validados. Nunca toca plan, licencia ni sesión.
+    function sanitizeProject(raw) {
+      if (!raw || typeof raw !== 'object' || !raw.profile || !Array.isArray(raw.messages)) return null;
+      const pr = raw.profile, c = raw.customColors || {}, d = state.customColors;
       return {
         profile: {
-          name: clip(d.profile.name, 40).trim() || 'Usuario',
-          status: clip(d.profile.status, 60),
-          avatar: safeImgUrl(d.profile.avatar) || state.profile.avatar,
-          myAvatar: safeImgUrl(d.profile.myAvatar) || state.profile.myAvatar,
-          verified: d.profile.verified !== false
+          name: cleanStr(pr.name, 60) || 'Usuario',
+          status: cleanStr(pr.status, 60),
+          avatar: safeImgUrl(pr.avatar) || PLACEHOLDER_AVATAR,
+          myAvatar: safeImgUrl(pr.myAvatar) || PLACEHOLDER_AVATAR,
+          verified: !!pr.verified
         },
         customColors: {
-          sentBg: safeColor(c.sentBg, cur.sentBg, true), receivedBg: safeColor(c.receivedBg, cur.receivedBg),
-          sentText: safeColor(c.sentText, cur.sentText), receivedText: safeColor(c.receivedText, cur.receivedText),
-          canvasBg: safeColor(c.canvasBg, cur.canvasBg)
+          sentBg: safeBg(c.sentBg, d.sentBg),
+          receivedBg: safeHex(c.receivedBg, d.receivedBg),
+          sentText: safeHex(c.sentText, d.sentText),
+          receivedText: safeHex(c.receivedText, d.receivedText),
+          canvasBg: safeHex(c.canvasBg, d.canvasBg)
         },
-        messages: sanitizeMessages(d.messages)
+        messages: raw.messages.slice(0, planLimits().maxMessages).map(sanitizeMessage).filter(Boolean),
+        platform: PLATFORMS.includes(raw.platform) ? raw.platform : state.platform,
+        viewMode: VIEW_MODES.includes(raw.viewMode) ? raw.viewMode : state.viewMode
       };
     }
-    function applyProject(p) {
-      Object.assign(state.profile, p.profile);
-      Object.assign(state.customColors, p.customColors);
-      state.messages = p.messages;
-      const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
-      set('input-profile-name', state.profile.name); set('input-profile-status', state.profile.status);
-      set('input-profile-avatar', state.profile.avatar.startsWith('data:') ? 'Imagen subida' : state.profile.avatar);
-      set('input-my-avatar', state.profile.myAvatar.startsWith('data:') ? 'Imagen subida' : state.profile.myAvatar);
-      document.getElementById('check-verified').checked = state.profile.verified;
-      [['sent-bg', 'sentBg'], ['received-bg', 'receivedBg'], ['sent-text', 'sentText'], ['received-text', 'receivedText'], ['canvas-bg', 'canvasBg']].forEach(([id, k]) => {
-        const v = state.customColors[k]; if (v.startsWith('#')) set('picker-' + id, v); set('hex-' + id, v);
-      });
-      renderAll();
-    }
 
-    // ===== SESIÓN REAL (cookie HttpOnly firmada por el servidor) =====
-    async function loadStoredSession() {
+    // =====================================================================
+    // CUENTAS, SESIÓN Y PAGOS (todo se valida en el servidor)
+    // La sesión vive en una cookie HttpOnly: el JavaScript de la página nunca ve el token.
+    // =====================================================================
+    const backend = { available: false, features: { mail: false, billing: false, ai: false, promo: false, google: false } };
+    const auth = { pendingPlan: null, resetToken: null, view: 'login', lastRefresh: 0 };
+
+    async function apiCall(path, opts) {
+      opts = opts || {};
+      const method = opts.method || 'POST';
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 35000);
       try {
-        const { user, mail } = await api('/api/me');
-        state.mailEnabled = !!mail;
-        state.currentUser = user ? { isLoggedIn: true, ...user } : { isLoggedIn: false, email: 'invitado@ethos.app', name: 'Creador Invitado', plan: 'free' };
-      } catch (e) { console.error('Sesión no disponible', e); }
-      updateAuthUI(); updatePlanUI(); updateVerifyBanner();
-    }
-
-    async function openBillingPortal() {
-      try { showToast('Abriendo tu suscripción...'); const { url } = await api('/api/billing-portal', {}); window.location.href = url; }
-      catch (e) { showToast(e.message, true); }
-    }
-
-    function updateVerifyBanner() {
-      const u = state.currentUser;
-      document.getElementById('btn-manage-sub').classList.toggle('hidden', !(u && u.isLoggedIn && u.plan && u.plan !== 'free'));
-      document.getElementById('verify-banner').classList.toggle('hidden', !(u && u.isLoggedIn && !u.emailVerified && state.mailEnabled));
-    }
-    async function resendVerify() {
-      try { await api('/api/verify/resend', {}); showToast('Enlace enviado. Revisa tu correo (y el spam).'); } catch (e) { showToast(e.message, true); }
-    }
-
-    let resetToken = null;
-    function handleUrlActions() {
-      const p = new URLSearchParams(location.search);
-      if (p.has('reset')) { resetToken = p.get('reset'); history.replaceState({}, document.title, location.pathname); showAuthModal('reset', 'Elige tu nueva contraseña.'); }
-      else if (p.has('verified')) {
-        const ok = p.get('verified') === '1'; history.replaceState({}, document.title, location.pathname);
-        showToast(ok ? '¡Correo verificado!' : 'El enlace de verificación no es válido o ha caducado.', !ok);
-      }
-    }
-
-    function saveCurrentSession() { updateAuthUI(); updatePlanUI(); }
-
-    // Acción que se ejecuta automáticamente justo después de iniciar sesión (p. ej. ir al pago)
-    let pendingAuthAction = null;
-
-    function requireAuth(action, opts = {}) {
-      if (state.currentUser.isLoggedIn) return action();
-      pendingAuthAction = action;
-      showAuthModal(opts.tab || 'register', opts.message || '');
-    }
-
-    // PAGO: primero cuenta, después Stripe (así el pago queda ligado a la cuenta)
-    function startCheckout(plan) {
-      requireAuth(() => goToCheckout(plan), { tab: 'register', message: 'Paso 1 de 2 · Crea tu cuenta (o inicia sesión) para que tu plan quede guardado. Después irás al pago seguro.' });
-    }
-
-    async function goToCheckout(plan) {
-      try {
-        showToast('Abriendo el pago seguro...');
-        const { url } = await api('/api/checkout', { plan });
-        window.location.href = url;
+        const res = await fetch(path, {
+          method: method,
+          signal: ctrl.signal,
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'ethos' },
+          body: method === 'GET' ? undefined : JSON.stringify(opts.body || {})
+        });
+        let data = null;
+        try { data = await res.json(); } catch (e) {}
+        return { ok: res.ok, status: res.status, data: data };
       } catch (e) {
-        if (e.status === 401) { state.currentUser.isLoggedIn = false; updateAuthUI(); return startCheckout(plan); } // sesión caducada
-        showToast(e.message, true);
-      }
+        return { ok: false, status: 0, data: null };
+      } finally { clearTimeout(timer); }
     }
+    function apiError(r, fallback) {
+      if (r.data && r.data.error) return r.data.error;
+      return r.status === 0 ? 'No hay conexión con el servidor. Inténtalo de nuevo.' : fallback;
+    }
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    // Vuelca la respuesta del servidor en el estado de la app
+    function applyMe(data) {
+      const u = data && data.user;
+      if (u) {
+        state.currentUser = {
+          isLoggedIn: true, email: u.email, name: u.name || u.email.split('@')[0], emailVerified: !!u.emailVerified,
+          plan: ['creador', 'pro'].includes(data.plan) ? data.plan : 'free',
+          planSource: data.planSource || null, promoUntil: data.promoUntil || null, hasSubscription: !!data.hasSubscription,
+          hasPassword: data.hasPassword !== false, google: !!data.google
+        };
+      } else {
+        state.currentUser = { isLoggedIn: false, email: '', name: 'Invitado', plan: 'free' };
+      }
+      if (data && data.features) backend.features = data.features;
+      updateAuthUI();
+      updatePlanUI();
+    }
+
+    async function refreshMe() {
+      if (!backend.available) return;
+      auth.lastRefresh = Date.now();
+      const r = await apiCall('/api/auth/me', { method: 'GET' });
+      if (r.ok && r.data) applyMe(r.data);
+    }
+
+    // ---------- Interfaz ----------
+    const PLAN_LABEL = { free: 'Gratis', creador: 'Creador', pro: 'Pro' };
 
     function updateAuthUI() {
-      const nameLbl = document.getElementById('user-display-name');
-      const emailLbl = document.getElementById('user-display-email');
-      const initialLbl = document.getElementById('user-avatar-initial');
-      const btnAuthLbl = document.getElementById('lbl-auth-btn');
-
-      if (state.currentUser && state.currentUser.isLoggedIn) {
-        nameLbl.textContent = state.currentUser.name || 'Usuario Pro';
-        emailLbl.textContent = state.currentUser.email;
-        initialLbl.textContent = (state.currentUser.name || 'U').charAt(0).toUpperCase();
-        btnAuthLbl.textContent = 'Salir';
-      } else {
-        nameLbl.textContent = 'Invitado';
-        emailLbl.textContent = 'Sin sesión';
-        initialLbl.textContent = 'G';
-        btnAuthLbl.textContent = 'Acceder';
-      }
+      const u = state.currentUser;
+      const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+      set('user-display-name', u.isLoggedIn ? u.name : 'Invitado');
+      set('user-display-email', u.isLoggedIn ? u.email : 'Sin sesión');
+      set('user-avatar-initial', u.isLoggedIn ? (u.name || u.email).charAt(0).toUpperCase() : 'G');
+      set('lbl-auth-btn', u.isLoggedIn ? 'Cuenta' : 'Entrar');
+      set('pricing-account-note', u.isLoggedIn
+        ? 'Sesión iniciada como ' + u.email + '. El plan se asocia a esta cuenta.'
+        : 'Para suscribirte necesitas una cuenta: así tu plan queda guardado y lo usas en cualquier dispositivo.');
+      if (!document.getElementById('modal-auth').classList.contains('hidden') && auth.view === 'account') refreshAccountView();
     }
 
-    // Botón del encabezado: entrar o salir
-    async function openAuthModal() {
-      if (state.currentUser.isLoggedIn) {
-        if (!confirm('¿Cerrar sesión?')) return;
-        try { await api('/api/logout', {}); } catch (e) {}
-        await loadStoredSession();
-        showToast('Sesión cerrada');
-      } else showAuthModal('login');
+    function refreshAccountView() {
+      const u = state.currentUser;
+      if (!u.isLoggedIn) return;
+      document.getElementById('acc-email').textContent = u.email;
+      const badge = document.getElementById('acc-plan');
+      badge.textContent = PLAN_LABEL[u.plan];
+      badge.className = 'text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border shrink-0 ' +
+        (u.plan === 'pro' ? 'bg-red-600/20 text-red-300 border-red-600/50' : (u.plan === 'creador' ? 'bg-sky-600/20 text-sky-300 border-sky-600/50' : 'bg-neutral-800 text-neutral-300 border-neutral-700'));
+      let note = 'Plan gratuito. Suscríbete para quitar la marca de agua y desbloquear más funciones.';
+      if (u.planSource === 'stripe') note = 'Suscripción activa. Puedes cambiar de plan, actualizar la tarjeta o cancelar desde "Gestionar suscripción".';
+      if (u.planSource === 'promo') note = 'Plan activado con código promocional hasta el ' + new Date(u.promoUntil * 1000).toLocaleDateString('es-ES') + '.';
+      document.getElementById('acc-plan-note').textContent = note;
+      document.getElementById('acc-verify').classList.toggle('hidden', !(backend.features.mail && !u.emailVerified));
+      document.getElementById('btn-portal').classList.toggle('hidden', !u.hasSubscription);
+      // Cuentas creadas con Google: no tienen contraseña hasta que creen una
+      const nopw = !u.hasPassword;
+      document.getElementById('acc-google').classList.toggle('hidden', !u.google);
+      document.getElementById('cp-current').classList.toggle('hidden', nopw);
+      document.getElementById('cp-summary').textContent = nopw ? 'Crear una contraseña (para entrar también con email)' : 'Cambiar contraseña';
+      const del = document.getElementById('del-pass');
+      del.type = nopw ? 'email' : 'password';
+      del.autocomplete = nopw ? 'off' : 'current-password';
+      del.placeholder = nopw ? 'Escribe tu email para confirmar' : 'Tu contraseña para confirmar';
     }
 
-    function showAuthModal(tab = 'login', message = '') {
-      closePricingModal();
-      switchAuthTab(tab);
-      const ctx = document.getElementById('auth-context');
-      ctx.textContent = message; ctx.classList.toggle('hidden', !message);
+    function startGoogleLogin() {
+      if (!backend.available) { setAuthMsg('No se puede conectar con el servidor. Abre la web publicada.', 'error'); return; }
+      const q = auth.pendingPlan ? '?plan=' + encodeURIComponent(auth.pendingPlan) : '';
+      window.location.href = '/api/auth/google/start' + q;
+    }
+
+    const GOOGLE_ERRORS = {
+      config: 'El inicio de sesión con Google todavía no está configurado en este sitio.',
+      state: 'La sesión de Google ha caducado o no se pudo verificar. Inténtalo de nuevo.',
+      unverified: 'Tu cuenta de Google no tiene el email verificado, así que no se puede usar.',
+      failed: 'No se pudo iniciar sesión con Google. Inténtalo de nuevo o usa tu email.'
+    };
+
+    const AUTH_VIEWS = {
+      login:    ['Entra en Ethos', 'Inicia sesión para usar tu plan en cualquier dispositivo.'],
+      register: ['Crea tu cuenta', 'Gratis. Con la cuenta tu plan queda guardado.'],
+      forgot:   ['Recupera tu contraseña', 'Te enviaremos un enlace para elegir una nueva.'],
+      reset:    ['Elige una contraseña nueva', 'Esta será tu contraseña a partir de ahora.'],
+      account:  ['Tu cuenta', '']
+    };
+
+    function setAuthMsg(text, kind) {
+      const el = document.getElementById('auth-msg');
+      if (!text) { el.classList.add('hidden'); el.textContent = ''; return; }
+      el.textContent = text;
+      el.className = 'text-xs rounded-xl px-3 py-2.5 leading-snug border ' +
+        (kind === 'error' ? 'bg-rose-500/10 border-rose-500/40 text-rose-200'
+          : kind === 'ok' ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-200'
+          : 'bg-sky-500/10 border-sky-500/40 text-sky-200');
+    }
+
+    function showAuthView(v, keepMsg) {
+      auth.view = v;
+      ['login', 'register', 'forgot', 'reset', 'account'].forEach(name => {
+        document.getElementById('view-' + name).classList.toggle('hidden', name !== v);
+      });
+      document.getElementById('auth-tabs').classList.toggle('hidden', !(v === 'login' || v === 'register'));
+      const on = 'py-2 rounded-lg transition bg-red-600 text-white', off = 'py-2 rounded-lg transition text-neutral-400 hover:text-white';
+      document.getElementById('tab-login').className = v === 'login' ? on : off;
+      document.getElementById('tab-register').className = v === 'register' ? on : off;
+      document.getElementById('auth-title').textContent = AUTH_VIEWS[v][0];
+      document.getElementById('auth-subtitle').textContent = AUTH_VIEWS[v][1];
+      document.getElementById('google-block').classList.toggle('hidden', !(backend.features.google && (v === 'login' || v === 'register')));
+      if (!keepMsg) setAuthMsg('');
+      if (v === 'account') refreshAccountView();
+    }
+
+    function openAuthModal(view) {
+      document.getElementById('auth-backend-note').classList.toggle('hidden', backend.available);
+      showAuthView(view || (state.currentUser.isLoggedIn ? 'account' : 'login'));
       document.getElementById('modal-auth').classList.remove('hidden');
-      setTimeout(() => document.getElementById('auth-input-email').focus(), 50);
+      setTimeout(() => {
+        const f = document.querySelector('#modal-auth form:not(.hidden) input');
+        if (f) f.focus();
+      }, 60);
     }
 
-    function hideAuthModal() { document.getElementById('modal-auth').classList.add('hidden'); }
-    function closeAuthModal() { pendingAuthAction = null; hideAuthModal(); } // cancelar = olvidar la acción pendiente
-
-    function toggleAuthPassword() {
-      const i = document.getElementById('auth-input-password'); const show = i.type === 'password';
-      i.type = show ? 'text' : 'password';
-      document.getElementById('auth-toggle-pw').textContent = show ? 'Ocultar' : 'Ver';
+    function closeAuthModal() {
+      document.getElementById('modal-auth').classList.add('hidden');
+      document.querySelectorAll('#modal-auth input[type="password"]').forEach(i => { i.value = ''; i.type = 'password'; });
     }
-
-    function switchAuthTab(tab) {
-      state.authTab = tab;
-      const isLogin = tab === 'login', isReg = tab === 'register', isForgot = tab === 'forgot', isReset = tab === 'reset';
-      const show = (id, on) => document.getElementById(id).classList.toggle('hidden', !on);
-      document.getElementById('auth-error').classList.add('hidden');
-      show('auth-tabs', isLogin || isReg); show('auth-field-name', isReg); show('auth-field-email', !isReset);
-      show('auth-field-password', !isForgot); show('auth-forgot', isLogin); show('auth-legal', isReg);
-      document.getElementById('auth-tab-login').className = isLogin ? 'flex-1 py-2 rounded-lg bg-red-600 text-white transition' : 'flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition';
-      document.getElementById('auth-tab-register').className = isReg ? 'flex-1 py-2 rounded-lg bg-red-600 text-white transition' : 'flex-1 py-2 rounded-lg text-neutral-400 hover:text-white transition';
-      document.getElementById('auth-modal-title').textContent = { login: 'Inicia sesión en Ethos', register: 'Crea tu cuenta Ethos', forgot: 'Recupera tu contraseña', reset: 'Elige una contraseña nueva' }[tab];
-      document.getElementById('auth-btn-submit').textContent = { login: 'Iniciar Sesión', register: 'Crear cuenta', forgot: 'Enviarme el enlace', reset: 'Guardar contraseña' }[tab];
-      document.getElementById('auth-switch-text').textContent = isLogin ? '¿No tienes cuenta?' : isReg ? '¿Ya tienes cuenta?' : '';
-      document.getElementById('auth-switch-btn').textContent = isLogin ? 'Regístrate' : isReg ? 'Inicia sesión' : 'Volver a iniciar sesión';
-      document.getElementById('auth-input-password').autocomplete = (isLogin) ? 'current-password' : 'new-password';
-    }
-
-    async function handleRecoverySubmit(email, password, btn, fail) {
-      const isForgot = state.authTab === 'forgot';
-      if (isForgot && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return fail('Escribe un correo válido (ej. tu@email.com).');
-      if (!isForgot && password.length < 8) return fail('La contraseña debe tener al menos 8 caracteres.');
-      btn.disabled = true; btn.textContent = 'Un momento...';
-      try {
-        if (isForgot) {
-          await api('/api/password/forgot', { email });
-          hideAuthModal(); showToast('Si ese correo tiene cuenta, te hemos enviado un enlace. Revisa también el spam.');
-        } else {
-          await api('/api/password/reset', { token: resetToken, password });
-          resetToken = null; document.getElementById('auth-input-password').value = '';
-          await loadStoredSession(); hideAuthModal(); showToast('Contraseña cambiada. Ya has iniciado sesión.');
-        }
-      } catch (err) {
-        if (err.code === 'BAD_TOKEN') { switchAuthTab('forgot'); fail('El enlace ha caducado o ya se usó. Pide uno nuevo.'); }
-        else fail(err.message);
-      } finally { btn.disabled = false; btn.textContent = state.authTab === 'reset' ? 'Guardar contraseña' : 'Enviarme el enlace'; }
-    }
-
-    async function handleAuthSubmit(e) {
-      e.preventDefault();
-      const email = document.getElementById('auth-input-email').value.trim();
-      const password = document.getElementById('auth-input-password').value;
-      const name = document.getElementById('auth-input-name').value.trim();
-      const btn = document.getElementById('auth-btn-submit');
-      const errBox = document.getElementById('auth-error');
-      const isRegister = state.authTab === 'register';
-      const idleLabel = isRegister ? 'Crear cuenta' : 'Iniciar Sesión';
-      const fail = (msg) => { errBox.textContent = msg; errBox.classList.remove('hidden'); };
-      errBox.classList.add('hidden');
-      if (state.authTab === 'forgot' || state.authTab === 'reset') return handleRecoverySubmit(email, password, btn, fail);
-
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return fail('Escribe un correo válido (ej. tu@email.com).');
-      if (!password) return fail('Escribe tu contraseña.');
-      if (isRegister && password.length < 8) return fail('La contraseña debe tener al menos 8 caracteres.');
-
-      btn.disabled = true; btn.textContent = 'Un momento...';
-      try {
-        const { user } = await api(isRegister ? '/api/register' : '/api/login', { email, password, name });
-        document.getElementById('auth-input-password').value = '';
-        await loadStoredSession(); // confirma que el navegador guardó la cookie de sesión
-        if (!state.currentUser.isLoggedIn) return fail('Entraste, pero el navegador no guardó la sesión. Si usas http (no https) pon COOKIE_SECURE=auto en .env y reinicia el servidor.');
-        const next = pendingAuthAction; pendingAuthAction = null;
-        hideAuthModal();
-        if (next) { showToast(isRegister ? 'Cuenta creada. Vamos al pago...' : `Hola de nuevo, ${user.name}. Vamos al pago...`); next(); }
-        else showToast(isRegister ? `¡Cuenta creada! Bienvenido/a, ${user.name}` : `¡Hola de nuevo, ${user.name}!`);
-      } catch (err) {
-        if (err.code === 'EMAIL_TAKEN') { switchAuthTab('login'); fail('Ese correo ya tiene cuenta. Escribe tu contraseña para entrar.'); }
-        else if (err.code === 'BAD_CREDENTIALS') fail('Correo o contraseña incorrectos. Si aún no tienes cuenta, pulsa "Regístrate".');
-        else fail(err.message);
-      } finally { btn.disabled = false; btn.textContent = state.authTab === 'register' ? 'Crear cuenta' : 'Iniciar Sesión'; }
-    }
-
-    document.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Escape' && !document.getElementById('modal-auth').classList.contains('hidden')) closeAuthModal();
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !document.getElementById('modal-auth').classList.contains('hidden')) closeAuthModal();
     });
 
-    // DETECTOR DE PAGO EXITOSO DESDE STRIPE
-    // El plan lo decide el servidor (webhook de Stripe). Aquí solo se espera a que se refleje.
-    async function checkStripeRedirect() {
-      if (new URLSearchParams(window.location.search).get('status') !== 'success') return;
-      window.history.replaceState({}, document.title, window.location.pathname);
-      showToast('Pago recibido. Activando tu plan...');
-      for (let i = 0; i < 10; i++) {
-        await new Promise(r => setTimeout(r, 2000));
-        await loadStoredSession();
-        if (!state.currentUser.isLoggedIn) { showAuthModal('login', 'Pago recibido. Inicia sesión con tu cuenta para ver tu plan activado.'); return; }
-        if (state.currentUser.plan !== 'free') { showToast(`¡Plan ${state.currentUser.plan.toUpperCase()} activado!`); return; }
-      }
-      showToast('Tu pago está en proceso. Si no se activa en unos minutos, recarga la página.', true);
+    function togglePass(id) {
+      const i = document.getElementById(id);
+      i.type = i.type === 'password' ? 'text' : 'password';
     }
 
+    function updateStrength(inputId, barId) {
+      const v = document.getElementById(inputId).value;
+      let sc = 0;
+      if (v.length >= 8) sc++;
+      if (v.length >= 12) sc++;
+      if (/[a-z]/.test(v) && /[A-Z]/.test(v)) sc++;
+      if (/\d/.test(v)) sc++;
+      if (/[^A-Za-z0-9]/.test(v)) sc++;
+      const bar = document.getElementById(barId);
+      bar.style.width = (v ? [10, 25, 45, 65, 85, 100][sc] : 0) + '%';
+      bar.style.backgroundColor = sc <= 1 ? '#ef4444' : (sc <= 3 ? '#f59e0b' : '#22c55e');
+    }
+
+    function setBusy(btn, busy, label) {
+      if (!btn) return;
+      if (busy) { btn.dataset.label = btn.textContent; btn.textContent = label || 'Un momento…'; btn.disabled = true; }
+      else { btn.textContent = btn.dataset.label || btn.textContent; btn.disabled = false; }
+    }
+
+    function needBackend() {
+      if (backend.available) return false;
+      setAuthMsg('No se puede conectar con el servidor. Abre la web publicada (no el archivo suelto) e inténtalo de nuevo.', 'error');
+      return true;
+    }
+
+    // ---------- Acciones de cuenta ----------
+    function afterAuthSuccess(msg) {
+      const plan = auth.pendingPlan;
+      const canPay = state.currentUser.emailVerified || !backend.features.mail;
+      if (plan && canPay) { auth.pendingPlan = null; closeAuthModal(); showToast(msg); startCheckout(plan); return; }
+      if (!canPay) { showAuthView('account'); setAuthMsg(msg + ' Confirma tu email (te lo hemos enviado) para poder pagar.', 'ok'); return; }
+      closeAuthModal();
+      showToast(msg);
+    }
+
+    async function submitLogin(e) {
+      e.preventDefault();
+      if (needBackend()) return;
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-pass').value;
+      if (!email || !password) { setAuthMsg('Escribe tu email y tu contraseña.', 'error'); return; }
+      const btn = document.getElementById('btn-login');
+      setBusy(btn, true, 'Entrando…'); setAuthMsg('');
+      const r = await apiCall('/api/auth/login', { body: { email: email, password: password } });
+      setBusy(btn, false);
+      if (!r.ok) { setAuthMsg(apiError(r, 'No se pudo iniciar sesión.'), 'error'); return; }
+      applyMe(r.data);
+      document.getElementById('login-pass').value = '';
+      afterAuthSuccess('Sesión iniciada. ¡Hola, ' + state.currentUser.name + '!');
+    }
+
+    async function submitRegister(e) {
+      e.preventDefault();
+      if (needBackend()) return;
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-pass').value;
+      if (!email) { setAuthMsg('Escribe tu email.', 'error'); return; }
+      if (password.length < 8) { setAuthMsg('La contraseña debe tener al menos 8 caracteres.', 'error'); return; }
+      if (!document.getElementById('reg-terms').checked) { setAuthMsg('Para crear la cuenta debes aceptar los términos y la política de privacidad.', 'error'); return; }
+      const btn = document.getElementById('btn-register');
+      setBusy(btn, true, 'Creando cuenta…'); setAuthMsg('');
+      const r = await apiCall('/api/auth/register', { body: { email: email, password: password, name: document.getElementById('reg-name').value } });
+      setBusy(btn, false);
+      if (!r.ok) {
+        setAuthMsg(apiError(r, 'No se pudo crear la cuenta.'), 'error');
+        if (r.status === 409) document.getElementById('login-email').value = email;
+        return;
+      }
+      applyMe(r.data);
+      document.getElementById('reg-pass').value = '';
+      afterAuthSuccess('Cuenta creada.');
+    }
+
+    async function submitForgot(e) {
+      e.preventDefault();
+      if (needBackend()) return;
+      const email = document.getElementById('forgot-email').value.trim();
+      if (!email) { setAuthMsg('Escribe el email de tu cuenta.', 'error'); return; }
+      const btn = document.getElementById('btn-forgot');
+      setBusy(btn, true, 'Enviando…');
+      const r = await apiCall('/api/auth/forgot', { body: { email: email } });
+      setBusy(btn, false);
+      if (r.ok) setAuthMsg('Si existe una cuenta con ese email, te hemos enviado un enlace para elegir una contraseña nueva. Revisa también el spam.', 'ok');
+      else setAuthMsg(apiError(r, 'No se pudo enviar el enlace.'), 'error');
+    }
+
+    async function submitReset(e) {
+      e.preventDefault();
+      const password = document.getElementById('reset-pass').value;
+      if (password.length < 8) { setAuthMsg('La contraseña debe tener al menos 8 caracteres.', 'error'); return; }
+      const btn = document.getElementById('btn-reset');
+      setBusy(btn, true, 'Guardando…');
+      const r = await apiCall('/api/auth/reset', { body: { token: auth.resetToken, password: password } });
+      setBusy(btn, false);
+      if (!r.ok) { setAuthMsg(apiError(r, 'No se pudo cambiar la contraseña.'), 'error'); return; }
+      auth.resetToken = null;
+      applyMe(r.data);
+      closeAuthModal();
+      showToast('Contraseña actualizada. Ya has iniciado sesión.');
+    }
+
+    async function submitChangePassword(e) {
+      e.preventDefault();
+      const current = document.getElementById('cp-current').value;
+      const password = document.getElementById('cp-new').value;
+      const nopw = !state.currentUser.hasPassword;
+      if ((!nopw && !current) || password.length < 8) { setAuthMsg(nopw ? 'La contraseña debe tener al menos 8 caracteres.' : 'Escribe tu contraseña actual y una nueva de al menos 8 caracteres.', 'error'); return; }
+      const btn = document.getElementById('btn-cp');
+      setBusy(btn, true, 'Guardando…');
+      const r = await apiCall('/api/auth/change-password', { body: { current: current, password: password } });
+      setBusy(btn, false);
+      if (!r.ok) { setAuthMsg(apiError(r, 'No se pudo cambiar la contraseña.'), 'error'); return; }
+      document.getElementById('cp-current').value = ''; document.getElementById('cp-new').value = '';
+      setAuthMsg(nopw ? 'Contraseña creada. Ya puedes entrar también con tu email y contraseña.' : 'Contraseña cambiada. Se han cerrado las sesiones de tus otros dispositivos.', 'ok');
+      await refreshMe();
+    }
+
+    async function logout(all) {
+      await apiCall('/api/auth/logout', { body: { all: !!all } });
+      applyMe(null);
+      closeAuthModal();
+      showToast(all ? 'Sesión cerrada en todos tus dispositivos' : 'Sesión cerrada');
+    }
+
+    async function submitDelete(e) {
+      e.preventDefault();
+      const password = document.getElementById('del-pass').value;
+      const nopwDel = !state.currentUser.hasPassword;
+      if (!password) { setAuthMsg(nopwDel ? 'Escribe tu email para confirmar.' : 'Escribe tu contraseña para confirmar.', 'error'); return; }
+      if (!window.confirm('¿Seguro? Se eliminará tu cuenta de forma definitiva.')) return;
+      const btn = document.getElementById('btn-del');
+      setBusy(btn, true, 'Eliminando…');
+      const r = await apiCall('/api/auth/delete', { body: nopwDel ? { confirmEmail: password } : { password: password } });
+      setBusy(btn, false);
+      if (!r.ok) { setAuthMsg(apiError(r, 'No se pudo eliminar la cuenta.'), 'error'); return; }
+      applyMe(null);
+      closeAuthModal();
+      showToast('Tu cuenta ha sido eliminada');
+    }
+
+    async function resendVerification() {
+      const r = await apiCall('/api/auth/resend-verification', { body: {} });
+      if (r.ok) setAuthMsg(r.data && r.data.already ? 'Tu email ya está confirmado.' : 'Te hemos enviado un nuevo email de confirmación.', 'ok');
+      else setAuthMsg(apiError(r, 'No se pudo enviar el email.'), 'error');
+    }
+
+    // ---------- Pagos ligados a la cuenta ----------
+    async function startCheckout(plan) {
+      if (!backend.available) { showToast('Para suscribirte abre la web publicada (no el archivo suelto).', true); return; }
+      if (!state.currentUser.isLoggedIn) {
+        // Primero la cuenta, después el pago
+        auth.pendingPlan = plan;
+        closePricingModal();
+        openAuthModal('register');
+        setAuthMsg('Crea tu cuenta (o inicia sesión) para continuar con el pago. Así tu plan queda guardado.', 'info');
+        return;
+      }
+      if (state.currentUser.hasSubscription) { showToast('Ya tienes un plan activo. Puedes cambiarlo desde tu cuenta.', true); closePricingModal(); openAuthModal('account'); return; }
+      showToast('Abriendo el pago seguro de Stripe…');
+      const r = await apiCall('/api/billing/checkout', { body: { plan: plan } });
+      if (r.ok && r.data && r.data.url) { window.location.href = r.data.url; return; }
+      if (r.status === 403) { closePricingModal(); auth.pendingPlan = plan; openAuthModal('account'); setAuthMsg(apiError(r, 'Confirma tu email antes de pagar.'), 'info'); return; }
+      if (r.status === 401) { applyMe(null); auth.pendingPlan = plan; closePricingModal(); openAuthModal('login'); setAuthMsg('Tu sesión ha caducado. Inicia sesión para continuar.', 'info'); return; }
+      showToast(apiError(r, 'No se pudo iniciar el pago.'), true);
+    }
+
+    async function manageSubscription() {
+      const r = await apiCall('/api/billing/portal', { body: {} });
+      if (r.ok && r.data && r.data.url) window.location.href = r.data.url;
+      else setAuthMsg(apiError(r, 'No se pudo abrir el portal de Stripe.'), 'error');
+    }
+
+    async function redeemPromo() {
+      const input = document.getElementById('input-promo-code');
+      const key = input.value.trim();
+      if (!key) { showToast('Escribe tu código promocional', true); return; }
+      if (!backend.available) { showToast('Abre la web publicada para usar códigos.', true); return; }
+      if (!state.currentUser.isLoggedIn) { closePricingModal(); openAuthModal('login'); setAuthMsg('Inicia sesión (o crea tu cuenta) para aplicar el código.', 'info'); return; }
+      const r = await apiCall('/api/promo/redeem', { body: { key: key } });
+      if (!r.ok) { showToast(apiError(r, 'Código no válido'), true); return; }
+      input.value = '';
+      applyMe(r.data);
+      closePricingModal();
+      showToast('¡Código aplicado! Plan ' + PLAN_LABEL[state.currentUser.plan] + ' activado.');
+    }
+
+    // ---------- Arranque: sesión actual y enlaces del email / de Stripe ----------
+    async function verifyEmailToken(token) {
+      const r = await apiCall('/api/auth/verify', { body: { token: token } });
+      if (r.ok) { showToast('¡Email confirmado!'); await refreshMe(); }
+      else showToast(apiError(r, 'El enlace no es válido o ha caducado.'), true);
+    }
+
+    async function finishCheckout() {
+      showToast('Confirmando tu pago con Stripe…');
+      for (let i = 0; i < 6; i++) {
+        const r = await apiCall('/api/billing/sync', { body: {} });
+        if (r.ok) applyMe(r.data);
+        if (state.currentUser.plan !== 'free') { showToast('¡Pago confirmado! Plan ' + PLAN_LABEL[state.currentUser.plan] + ' activado.'); return; }
+        await sleep(2000);
+      }
+      showToast('Stripe aún no ha confirmado el pago. Recarga la página en un minuto.', true);
+    }
+
+    async function initBackend() {
+      const params = new URLSearchParams(window.location.search);
+      const verify = params.get('verify'), reset = params.get('reset'), checkout = params.get('checkout');
+      const gParam = params.get('google'), gReason = params.get('reason'), gPlan = params.get('plan');
+      if (verify || reset || checkout || gParam) window.history.replaceState({}, document.title, window.location.pathname);   // los tokens no se quedan en la URL
+      if (window.location.protocol === 'file:') { updateAuthUI(); return; }
+      const r = await apiCall('/api/auth/me', { method: 'GET' });
+      if (r.ok && r.data) { backend.available = true; applyMe(r.data); }
+      if (gParam === 'ok' && state.currentUser.isLoggedIn) {
+        showToast('Sesión iniciada con Google. ¡Hola, ' + state.currentUser.name + '!');
+        if (['creador', 'pro'].includes(gPlan)) startCheckout(gPlan);
+      } else if (gParam === 'cancel') {
+        showToast('Has cancelado el inicio de sesión con Google.', true);
+      } else if (gParam) {
+        showToast(GOOGLE_ERRORS[gReason] || GOOGLE_ERRORS.failed, true);
+      }
+      if (verify) await verifyEmailToken(verify);
+      if (reset) { auth.resetToken = reset; openAuthModal('reset'); }
+      if (checkout === 'success') await finishCheckout();
+      else if (checkout === 'cancel') showToast('Pago cancelado. No se ha cobrado nada.', true);
+    }
+
+    // Si inicias o cierras sesión en otra pestaña, esta se entera al volver
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && backend.available && Date.now() - auth.lastRefresh > 20000) refreshMe();
+    });
+
     function updatePlanUI() {
+      if (typeof renderEditorMessagesList === 'function') renderEditorMessagesList();
       const badge = document.getElementById('badge-header-plan');
       const watermark = document.getElementById('watermark-element');
       const exportText = document.getElementById('btn-export-text');
@@ -1253,7 +1549,7 @@
         badge.textContent = "Gratis (€0)";
         badge.className = "text-[10px] uppercase font-extrabold bg-neutral-800 text-neutral-400 border border-neutral-700 px-2 py-0.5 rounded-full cursor-pointer hover:bg-neutral-700 transition";
         if (watermark) watermark.style.display = 'block';
-        if (exportText) exportText.textContent = "Descargar HD";
+        if (exportText) exportText.textContent = "Descargar PNG (estándar)";
         if (statusPlanBadge) {
           statusPlanBadge.textContent = "Gratis (€0)";
           statusPlanBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 border border-neutral-700";
@@ -1261,6 +1557,8 @@
         if (statusPlanDesc) statusPlanDesc.textContent = "Plan estándar activo. Desbloquea más resolución e IA suscribiéndote.";
       }
     }
+
+
 
     function openPricingModal() {
       document.getElementById('modal-pricing').classList.remove('hidden');
@@ -1270,7 +1568,51 @@
       document.getElementById('modal-pricing').classList.add('hidden');
     }
 
+    function loadSavedApiKey() {
+      const savedKey = localStorage.getItem('ethos_gemini_api_key');
+      const input = document.getElementById('input-user-api-key');
+      const status = document.getElementById('api-key-status');
+      if (savedKey) {
+        input.value = savedKey;
+        status.textContent = "Clave guardada ✓";
+        status.className = "text-[10px] font-bold text-red-500";
+      }
+    }
+
+    function saveApiKeyLocally() {
+      const val = document.getElementById('input-user-api-key').value.trim();
+      const status = document.getElementById('api-key-status');
+      if (val) {
+        localStorage.setItem('ethos_gemini_api_key', val);
+        status.textContent = "Clave guardada ✓";
+        status.className = "text-[10px] font-bold text-red-500";
+        showToast('Clave API guardada localmente');
+      } else {
+        localStorage.removeItem('ethos_gemini_api_key');
+        status.textContent = "No configurada";
+        status.className = "text-[10px] font-bold text-neutral-500";
+        showToast('Clave API eliminada');
+      }
+    }
+
+    function onApiKeyInputChanged() {
+      const val = document.getElementById('input-user-api-key').value.trim();
+      const savedKey = localStorage.getItem('ethos_gemini_api_key');
+      const status = document.getElementById('api-key-status');
+      if (val && val === savedKey) {
+        status.textContent = "Clave guardada ✓";
+        status.className = "text-[10px] font-bold text-red-500";
+      } else if (val) {
+        status.textContent = "Sin guardar";
+        status.className = "text-[10px] font-bold text-amber-500";
+      } else {
+        status.textContent = "No configurada";
+        status.className = "text-[10px] font-bold text-neutral-500";
+      }
+    }
+
     function renderAll() {
+      applyPlatformChrome();
       updateProfileUI();
       renderMessages();
       renderEditorMessagesList();
@@ -1305,61 +1647,117 @@
       }
     }
 
-    function applyColorPreset(presetKey) {
-      if (presetKey === 'ig-blue') {
-        state.customColors.sentBg = '#3797f0';
-        state.customColors.receivedBg = '#262626';
-      } else if (presetKey === 'ig-gradient') {
-        state.customColors.sentBg = 'linear-gradient(135deg, #7F00FF, #E100FF, #FF007F, #FF7000)';
-        state.customColors.receivedBg = '#262626';
-      } else if (presetKey === 'ethos-red') {
-        state.customColors.sentBg = 'linear-gradient(135deg, #dc2626, #991b1b, #ff2e2e)';
-        state.customColors.receivedBg = '#1f1f1f';
-      } else if (presetKey === 'whatsapp-green') {
-        state.customColors.sentBg = '#005c4b';
-        state.customColors.receivedBg = '#202c33';
-        state.customColors.canvasBg = '#0b141a';
-      }
+    const COLOR_PRESETS = {
+      'ig-blue':        { sentBg: '#3797f0', receivedBg: '#262626', canvasBg: '#000000' },
+      'ig-gradient':    { sentBg: 'linear-gradient(135deg, #7F00FF, #E100FF, #FF007F, #FF7000)', receivedBg: '#262626', canvasBg: '#000000' },
+      'ethos-red':      { sentBg: 'linear-gradient(135deg, #dc2626, #991b1b, #ff2e2e)', receivedBg: '#1f1f1f', canvasBg: '#000000' },
+      'whatsapp-green': { sentBg: '#005c4b', receivedBg: '#202c33', canvasBg: '#0b141a' },
+      'imessage':       { sentBg: '#0a84ff', receivedBg: '#26252a', canvasBg: '#000000' }
+    };
 
-      if (!state.customColors.sentBg.includes('gradient')) {
-        document.getElementById('picker-sent-bg').value = state.customColors.sentBg;
-        document.getElementById('hex-sent-bg').value = state.customColors.sentBg;
-      }
-      document.getElementById('picker-received-bg').value = state.customColors.receivedBg;
-      document.getElementById('hex-received-bg').value = state.customColors.receivedBg;
-      document.getElementById('picker-canvas-bg').value = state.customColors.canvasBg || '#000000';
-
-      document.getElementById('chat-body').style.backgroundColor = state.customColors.canvasBg || '#000000';
-
+    function applyColorPreset(presetKey, silent) {
+      const pr = COLOR_PRESETS[presetKey];
+      if (!pr) return;
+      Object.assign(state.customColors, pr);
+      syncColorInputs();
       renderMessages();
-      showToast('Preset de color aplicado');
+      if (!silent) showToast('Preset de color aplicado');
     }
 
     // GENERACIÓN GEMINI IA
+    // Pro: el servidor llama a Gemini con SU clave (nunca llega al navegador).
+    // Resto: el usuario puede usar su propia clave personal, directa a Google.
+    const AI_SYSTEM_PROMPT = `Eres un guionista experto en historias virales para YouTube Shorts (formato chat de drama, salseo, venganza).
+Responde SOLO con JSON estricto y texto plano (sin HTML ni markdown) con este esquema exacto:
+{
+  "profileName": "Nombre con emoji (ej. Diego 💔)",
+  "status": "Activo(a) hoy",
+  "avatarUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+  "messages": [
+    { "type": "divider", "text": "HOY 21:40" },
+    { "type": "text", "sender": "them", "text": "...", "time": "21:40", "reaction": "" },
+    { "type": "audio", "sender": "them", "audioSpec": "0:14", "time": "21:41" },
+    { "type": "text", "sender": "me", "text": "...", "time": "21:41", "reaction": "💀" }
+  ]
+}
+Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
+
+    async function callGeminiDirect(idea, apiKey) {
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: 'Crea un chat de drama viral sobre: "' + idea.replace(/"/g, "'") + '"' }] }],
+          systemInstruction: { parts: [{ text: AI_SYSTEM_PROMPT }] },
+          generationConfig: { responseMimeType: 'application/json' }
+        })
+      });
+      if (!res.ok) throw new Error('Gemini rechazó la petición. Revisa tu API Key.');
+      const result = await res.json();
+      const raw = result && result.candidates && result.candidates[0] && result.candidates[0].content.parts[0].text;
+      try { return JSON.parse(raw); } catch (e) { throw new Error('Respuesta de la IA no válida'); }
+    }
+
+    function applyGeneratedChat(data) {
+      if (!data || typeof data !== 'object') throw new Error('Respuesta de la IA no válida');
+      let msgs = (Array.isArray(data.messages) ? data.messages : []).slice(0, LIMITS.msgs).map(sanitizeMessage).filter(Boolean);
+      if (!msgs.length) throw new Error('La IA no devolvió mensajes válidos');
+      if (msgs.length > planLimits().maxMessages) { msgs = msgs.slice(0, planLimits().maxMessages); showToast('Plan ' + state.currentUser.plan + ': se han recortado los mensajes a ' + planLimits().maxMessages + '.', true); }
+      const name = cleanStr(data.profileName, 60);
+      const status = cleanStr(data.status, 60);
+      const avatar = safeImgUrl(data.avatarUrl);
+      if (name) state.profile.name = name;
+      if (status) state.profile.status = status;
+      if (avatar) state.profile.avatar = avatar;
+      state.messages = msgs;
+      syncFormFromState();
+      renderAll();
+    }
+
     async function generateChatWithAI() {
-      const prompt = document.getElementById('input-ai-prompt').value.trim();
-      if (!state.currentUser.isLoggedIn) { showToast('Inicia sesión para usar la IA', true); openAuthModal(); return; }
-      if (state.currentUser.plan !== 'pro') { showToast('La IA es exclusiva del Plan Pro (€14,99)', true); openPricingModal(); return; }
-      if (!prompt) { showToast('Escribe una idea dramática para la IA', true); return; }
+      const idea = document.getElementById('input-ai-prompt').value.trim();
+      const apiKey = document.getElementById('input-user-api-key').value.trim() || lsGet('ethos_gemini_api_key') || '';
+      const isPro = !!(state.currentUser.isLoggedIn && state.currentUser.plan === 'pro');
+      const useServer = isPro && backend.available && backend.features.ai;
+
+      if (!idea) { showToast('Escribe una idea dramática para la IA', true); return; }
+      if (idea.length > 600) { showToast('La idea es demasiado larga (máximo 600 caracteres)', true); return; }
+      if (!useServer && !apiKey) {
+        if (isPro) {
+          showToast('La IA integrada no está disponible ahora. Puedes usar tu propia API Key.', true);
+        } else if (!state.currentUser.isLoggedIn) {
+          showToast('Inicia sesión con tu cuenta Pro, o usa tu propia API Key de Gemini.', true);
+          openAuthModal('login');
+        } else {
+          showToast('La IA requiere Plan Pro (€14,99) o tu API Key personal.', true);
+          openPricingModal();
+        }
+        return;
+      }
 
       const btn = document.getElementById('btn-generate-ai');
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Generando guion...`;
+      btn.replaceChildren(mk('i', 'fa-solid fa-spinner animate-spin'), document.createTextNode(' Generando guion...'));
+
       try {
-        const { data, usage } = await api('/api/ai/generate', { prompt });
-        const p = sanitizeProject({
-          profile: { name: data && data.profileName, status: data && data.status, verified: state.profile.verified },
-          messages: data && data.messages
-        });
-        if (!p || !p.messages.length) throw new Error('La IA devolvió un guion vacío. Inténtalo de nuevo.');
-        applyProject(p);
-        showToast(`¡Chat generado! Te quedan ${Math.max(0, usage.dailyLimit - usage.day)} generaciones hoy`);
+        let data;
+        if (useServer) {
+          const r = await apiCall('/api/ai', { body: { prompt: idea } });
+          if (r.status === 401) { applyMe(null); throw new Error('Tu sesión ha caducado. Vuelve a iniciar sesión.'); }
+          if (!r.ok) throw new Error((r.data && r.data.error) || 'No se pudo generar el chat');
+          data = r.data.data;
+        } else {
+          data = await callGeminiDirect(idea, apiKey);
+        }
+        applyGeneratedChat(data);
+        showToast('¡Chat generado con Gemini IA!');
       } catch (err) {
-        showToast(err.message, true);
-        if (err.code === 'PLAN') openPricingModal();
+        console.error(err);
+        showToast(err.message || 'Error al generar el chat', true);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-sparkles"></i> Generar Chat Viral con IA`;
+        btn.replaceChildren(mk('i', 'fa-solid fa-sparkles'), document.createTextNode(' Generar Chat Viral con IA'));
       }
     }
 
@@ -1424,31 +1822,45 @@
     function renderTypingIndicator() {
       if (recordingMode) trimChatToLast(RECORDING_VISIBLE_MESSAGES - 1);
       removeTypingIndicator();
+
+      // En WhatsApp el "escribiendo…" aparece en la cabecera, no como burbuja
+      if (state.platform === 'whatsapp') {
+        const st = document.getElementById('display-handle-status');
+        if (st) { st.textContent = 'escribiendo…'; st.style.color = '#00a884'; }
+        return;
+      }
+
       const chatBody = document.getElementById('chat-body');
-      const div = document.createElement('div');
-      div.id = "temp-typing-indicator";
-      div.className = "flex items-end gap-2 justify-start my-1 select-none msg-animate";
-      div.innerHTML = `
-        <img class="js-typing-av w-7 h-7 rounded-full object-cover mb-1 border border-neutral-800 shrink-0">
-        <div class="px-3.5 py-2.5 rounded-3xl bg-[#262626] flex items-center gap-1.5 shadow-sm">
-          <span class="w-1.5 h-1.5 bg-neutral-400 rounded-full dot-pulse-1"></span>
-          <span class="w-1.5 h-1.5 bg-neutral-400 rounded-full dot-pulse-2"></span>
-          <span class="w-1.5 h-1.5 bg-neutral-400 rounded-full dot-pulse-3"></span>
-        </div>
-      `;
-      div.querySelector('.js-typing-av').src = safeImgUrl(state.profile.avatar) || 'https://placehold.co/150';
-      chatBody.appendChild(div);
+      const row = mk('div', 'flex items-end gap-2 justify-start my-1 select-none msg-animate');
+      row.id = 'temp-typing-indicator';
+      if (state.platform === 'instagram') {
+        const av = mk('img', 'w-7 h-7 rounded-full object-cover mb-1 border border-neutral-800 shrink-0');
+        setSafeImg(av, state.profile.avatar);
+        row.appendChild(av);
+      }
+      const dots = mk('div', 'px-3.5 py-2.5 flex items-center gap-1.5 shadow-sm');
+      dots.style.backgroundColor = state.customColors.receivedBg;
+      dots.style.borderRadius = '22px';
+      ['dot-pulse-1', 'dot-pulse-2', 'dot-pulse-3'].forEach(c => dots.appendChild(mk('span', 'w-1.5 h-1.5 bg-neutral-400 rounded-full ' + c)));
+      row.appendChild(dots);
+      chatBody.appendChild(row);
       chatBody.scrollTop = chatBody.scrollHeight;
     }
 
     function removeTypingIndicator() {
       const el = document.getElementById('temp-typing-indicator');
       if (el) el.remove();
+      const st = document.getElementById('display-handle-status');
+      if (st && st.style.color) { st.textContent = state.profile.status; st.style.color = ''; }
     }
 
     // ONBOARDING Y CAPTURA DE VÍDEO
     function openVideoRecordModal() {
-      document.getElementById('modal-video-guide').classList.remove('hidden');
+      const modal = document.getElementById('modal-video-guide');
+      const unsupported = !(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) || typeof MediaRecorder === 'undefined';
+      document.getElementById('rec-unsupported').classList.toggle('hidden', !unsupported);
+      refreshRecordModalLocks();
+      if (modal) modal.classList.remove('hidden');
     }
 
     function closeVideoRecordModal() {
@@ -1461,6 +1873,10 @@
     let recLayoutBackup = null;
 
     function selectRecordMode(mode) {
+      if (mode === 'last3' && !planLimits().videoLast3) {
+        showToast('El modo "últimos 3 mensajes" es de los planes Creador y Pro.', true);
+        return;
+      }
       recordModeSel = mode;
       const on = "p-3 rounded-2xl border text-left transition border-emerald-500 bg-emerald-600/10";
       const off = "p-3 rounded-2xl border text-left transition border-neutral-800 bg-[#0a0a0a] hover:border-neutral-600";
@@ -1468,37 +1884,68 @@
       document.getElementById('rec-mode-last3').className = mode === 'last3' ? on : off;
     }
 
-    // Límites del plan gratuito (los planes de pago no tienen límite)
-    const PLAN_LIMITS = { free: { messages: 12, videosPerDay: 3 } };
-    const freeLimit = (key) => (state.currentUser.plan === 'free' ? PLAN_LIMITS.free[key] : Infinity);
-    function canHaveMessages(total) {
-      if (total <= freeLimit('messages')) return true;
-      showToast(`El plan gratuito permite hasta ${PLAN_LIMITS.free.messages} mensajes por chat. Pásate a Creador para chats sin límite.`, true);
-      openPricingModal();
-      return false;
+    // Bloquea en el modal lo que el plan gratis no incluye
+    function refreshRecordModalLocks() {
+      const lim = planLimits();
+      const bg = document.getElementById('rec-bg'), snd = document.getElementById('rec-sound');
+      const fmt = document.getElementById('rec-format');
+      bg.disabled = !lim.videoKey; snd.disabled = !lim.videoSound; fmt.disabled = !lim.videoVertical;
+      if (!lim.videoVertical) fmt.value = 'native';
+      if (!lim.videoKey) bg.value = 'asis';
+      if (!lim.videoSound) snd.checked = false;
+      if (!lim.videoLast3) selectRecordMode('full');
+      document.getElementById('rec-mode-last3').classList.toggle('opacity-50', !lim.videoLast3);
+      document.getElementById('rec-free-note').classList.toggle('hidden', lim.videoKey && lim.videoLast3 && lim.videoSound && lim.videoVertical);
     }
-    const recKey = () => 'ethos_rec_' + new Date().toISOString().slice(0, 10);
-    function recordingsToday() { try { return +localStorage.getItem(recKey()) || 0; } catch (e) { return 0; } }
-    function countRecording() { try { localStorage.setItem(recKey(), String(recordingsToday() + 1)); } catch (e) {} }
 
     function confirmAndStartVideoRecording() {
+      const lim = planLimits();
+      // También se aplica aquí por si alguien intenta saltarse el bloqueo del modal
+      const mode = lim.videoLast3 ? recordModeSel : 'full';
+      const bg = lim.videoKey ? document.getElementById('rec-bg').value : 'asis';
+      const sound = lim.videoSound ? document.getElementById('rec-sound').checked : false;
+      const format = lim.videoVertical ? document.getElementById('rec-format').value : 'native';
       closeVideoRecordModal();
-      if (recordingsToday() >= freeLimit('videosPerDay')) {
-        showToast(`Plan gratuito: máximo ${PLAN_LIMITS.free.videosPerDay} grabaciones al día. Vuelve mañana o pásate a Creador.`, true);
-        openPricingModal();
-        return;
-      }
-      startVideoRecordingProcess(recordModeSel, document.getElementById('rec-chroma').checked, {
-        bgGreen: document.getElementById('rec-bg-green').checked,
-        shorts: document.getElementById('rec-size').value !== 'native'
-      });
+      startVideoRecordingProcess(mode, bg, sound, format);
+    }
+
+    // Sonidos sintetizados (pop al enviar, ding al recibir) que se mezclan en el vídeo
+    function makeMessageSounder(ctx, dest) {
+      const tone = (f0, f1, start, dur, vol) => {
+        const t0 = ctx.currentTime + start;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        g.connect(dest);
+        const o = ctx.createOscillator();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(f0, t0);
+        o.frequency.exponentialRampToValueAtTime(f1, t0 + dur * 0.6);
+        o.connect(g);
+        o.start(t0);
+        o.stop(t0 + dur + 0.05);
+      };
+      return {
+        play(msg) {
+          if (msg.type === 'divider') return;
+          if (msg.sender === 'me') tone(520, 900, 0, 0.14, 0.28);
+          else { tone(880, 880, 0, 0.2, 0.22); tone(1320, 1320, 0.09, 0.26, 0.2); }
+        }
+      };
+    }
+
+    function pickRecorderMime(withAudio) {
+      const list = withAudio
+        ? ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/mp4', 'video/webm']
+        : ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/mp4', 'video/webm'];
+      return list.find(m => MediaRecorder.isTypeSupported(m)) || 'video/webm';
     }
 
     // Prepara el diseño que se verá durante la grabación
-    function applyRecordingLayout(mode) {
+    function applyRecordingLayout(mode, keyColor) {
       const frame = document.getElementById('phone-frame');
       const chatBody = document.getElementById('chat-body');
-      const wm = document.getElementById('watermark-element');
       recLayoutBackup = {
         zoom: state.zoom,
         minHeight: frame.style.minHeight,
@@ -1507,6 +1954,21 @@
 
       document.getElementById('zoom-bar').style.visibility = 'hidden';
       document.getElementById('toast').style.visibility = 'hidden';
+      chatBody.classList.add('rec-no-scrollbar');
+
+      // Fondo transparente para el editor: TODO el fondo del teléfono pasa a un único color de clave
+      if (keyColor) {
+        frame.style.backgroundColor = keyColor;
+        const hdr = document.getElementById('chat-header');
+        hdr.style.backgroundColor = keyColor; hdr.style.borderBottomColor = keyColor;
+        hdr.classList.remove('backdrop-blur');
+        document.getElementById('phone-status-bar').style.backgroundColor = keyColor;
+        document.getElementById('chat-input-bar').style.backgroundColor = keyColor;
+        chatBody.style.backgroundColor = keyColor;
+        chatBody.style.backgroundImage = 'none';
+        const notch = document.getElementById('phone-notch');
+        if (notch) notch.classList.add('hidden');
+      }
 
       if (mode === 'last3') {
         // Tarjeta compacta: solo cabecera con perfil + zona de 3 mensajes
@@ -1524,7 +1986,6 @@
         chatBody.style.height = '250px';
         chatBody.style.overflow = 'hidden';
         chatBody.style.justifyContent = 'flex-end';
-        if (wm) wm.style.bottom = '8px';
       }
 
       // Ampliar el marco hasta aprovechar el área visible: más píxeles reales en el vídeo
@@ -1540,14 +2001,16 @@
       if (!recLayoutBackup) return;
       const frame = document.getElementById('phone-frame');
       const chatBody = document.getElementById('chat-body');
-      const wm = document.getElementById('watermark-element');
 
+      chatBody.classList.remove('rec-no-scrollbar');
       chatBody.style.flex = '';
       chatBody.style.height = '';
       chatBody.style.overflow = '';
       chatBody.style.justifyContent = '';
-      if (wm) wm.style.bottom = '';
 
+      frame.style.backgroundColor = '';
+      document.getElementById('chat-header').classList.add('backdrop-blur');
+      applyPlatformChrome();   // devuelve cabecera, barra y fondos a los colores de la plataforma
       applyViewMode(); // restaura barra, notch, altura y radios según el modo de vista elegido
       frame.style.minHeight = recLayoutBackup.minHeight;
 
@@ -1570,7 +2033,14 @@
       ctx.closePath();
     }
 
-    async function startVideoRecordingProcess(mode = 'full', useChroma = true, opts = {}) {
+    async function startVideoRecordingProcess(mode = 'full', bg = 'asis', withSound = true, format = 'native') {
+      const keyed = bg === 'green' || bg === 'black';
+      const keyColor = bg === 'green' ? '#00ff00' : '#000000';
+      const prevCanvasBg = state.customColors.canvasBg;
+      if (!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) || typeof MediaRecorder === 'undefined') {
+        showToast('Tu navegador no permite grabar la pestaña. Usa Chrome o Edge de escritorio.', true);
+        return;
+      }
       if (state.messages.length === 0) {
         showToast('Añade al menos un mensaje para grabar', true);
         return;
@@ -1583,15 +2053,26 @@
       let displayStream = null;
       let videoElement = null;
       let layoutApplied = false;
-      let bgBackup = null, bgInlineBackup = '';
+      let audioCtx = null, audioDest = null;
+      if (withSound) {
+        try {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AC();
+          audioDest = audioCtx.createMediaStreamDestination();
+          recAudio = makeMessageSounder(audioCtx, audioDest);
+          if (audioCtx.resume) audioCtx.resume();
+        } catch (e) { audioCtx = null; audioDest = null; recAudio = null; }
+      }
 
       const cleanup = () => {
         if (displayStream) displayStream.getTracks().forEach(t => t.stop());
         if (videoElement) videoElement.remove();
         recordingMode = false;
+        state.customColors.canvasBg = prevCanvasBg;
+        recAudio = null;
+        if (audioCtx) { audioCtx.close().catch(() => {}); audioCtx = null; }
         if (layoutApplied) restoreRecordingLayout();
         layoutApplied = false;
-        if (bgBackup !== null) { state.customColors.canvasBg = bgBackup; chatBody.style.backgroundColor = bgInlineBackup; bgBackup = null; }
         stopAnimation();
         renderMessages();
         btnText.textContent = "🎥 Grabar Vídeo";
@@ -1603,9 +2084,7 @@
         displayStream = await navigator.mediaDevices.getDisplayMedia({
           video: {
             displaySurface: 'browser',
-            frameRate: { ideal: 60, max: 60 },
-            width: { ideal: 3840 },
-            height: { ideal: 2160 }
+            frameRate: { ideal: 60, max: 60 }
           },
           audio: false,
           preferCurrentTab: true
@@ -1619,54 +2098,80 @@
         await videoElement.play();
 
         // Diseño de grabación (después de compartir, porque el navegador puede cambiar el tamaño de la vista)
-        applyRecordingLayout(mode);
+        if (keyed) state.customColors.canvasBg = keyColor;   // los bordes de reacciones usan este color
+        applyRecordingLayout(mode, keyed ? keyColor : null);
         layoutApplied = true;
-        // Fondo de la conversación en verde croma puro: se quita en el editor y se ve el gameplay detrás
-        if (useChroma && opts.bgGreen) { bgBackup = state.customColors.canvasBg; bgInlineBackup = chatBody.style.backgroundColor; state.customColors.canvasBg = '#00ff00'; chatBody.style.backgroundColor = '#00ff00'; }
         chatBody.innerHTML = '';
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
         await new Promise(r => setTimeout(r, 400));
 
+        // El teléfono debe verse ENTERO en la ventana: si algo queda fuera, la captura saldría cortada
+        for (let i = 0; i < 12; i++) {
+          const rr = frame.getBoundingClientRect();
+          if (rr.top >= 0 && rr.left >= 0 && rr.bottom <= window.innerHeight && rr.right <= window.innerWidth) break;
+          state.zoom = Math.max(0.4, state.zoom * 0.92);
+          updateZoomUI();
+          frame.scrollIntoView({ block: 'center', inline: 'center' });
+          await new Promise(r => setTimeout(r, 130));
+        }
+
+        // La captura de la pestaña tiene el tamaño de la ventana: se recorta el teléfono con coordenadas enteras.
+        // (No se piden resoluciones "ideales": con ellas el navegador puede recortar/escalar la captura y descuadrar el vídeo.)
+        const cropped = false;
+
         // Tamaño de salida = tamaño real de píxeles capturados (sin reescalar, sin deformar)
         const evenNum = n => Math.max(2, Math.round(n / 2) * 2);
         const r0 = frame.getBoundingClientRect();
-        // Region Capture: el navegador recorta exactamente el marco del móvil (sin cálculos de coordenadas)
-        let cropped = false;
-        try {
-          const track = displayStream.getVideoTracks()[0];
-          if (window.CropTarget && typeof track.cropTo === 'function') {
-            await track.cropTo(await CropTarget.fromElement(frame));
-            await new Promise(r => setTimeout(r, 500));
-            const ar = videoElement.videoWidth / videoElement.videoHeight;
-            cropped = Math.abs(ar - r0.width / r0.height) < 0.03;
-          }
-        } catch (e) { console.warn('Region Capture no disponible, uso recorte manual', e); }
-        // Shorts: lienzo 9:16 de 1080x1920 con el móvil encajado y el resto en verde croma.
-        // Original: solo el móvil, a su tamaño real (como en la primera versión).
-        const shorts = opts.shorts !== false;
-        const outW = shorts ? 1080 : evenNum(cropped ? videoElement.videoWidth : r0.width * (videoElement.videoWidth / window.innerWidth));
-        const outH = shorts ? 1920 : evenNum(cropped ? videoElement.videoHeight : r0.height * (videoElement.videoHeight / window.innerHeight));
+        const scaleX0 = videoElement.videoWidth / window.innerWidth;
+        const scaleY0 = videoElement.videoHeight / window.innerHeight;
+        const outW = cropped ? evenNum(videoElement.videoWidth) : evenNum(r0.width * scaleX0);
+        const outH = cropped ? evenNum(videoElement.videoHeight) : evenNum(r0.height * scaleY0);
+
+        // Formato: "native" = tamaño del teléfono; "vertical" = lienzo 9:16 de 1080x1920 con el teléfono centrado
+        const vertical = format === 'vertical';
+        const canvasW = vertical ? 1080 : outW, canvasH = vertical ? 1920 : outH;
+        const fit = vertical ? Math.min(canvasW / outW, canvasH / outH) : 1;
+        const dW = Math.round(outW * fit), dH = Math.round(outH * fit);
+        const dX = Math.round((canvasW - dW) / 2), dY = Math.round((canvasH - dH) / 2);
 
         const canvas = document.createElement('canvas');
-        canvas.width = outW;
-        canvas.height = outH;
+        canvas.width = canvasW;
+        canvas.height = canvasH;
         const ctx = canvas.getContext('2d', { alpha: false });
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
         const cssRadius = parseFloat(getComputedStyle(frame).borderTopLeftRadius) || 0;
 
+        // El navegador altera un poco los colores al capturar (p. ej. el verde puro sale algo más oscuro).
+        // Se mide el color REAL del fondo ya capturado y se usa también en los bordes, para que todo sea un único color.
+        let fillColor = keyColor;
+        if (keyed) {
+          try {
+            const probe = document.createElement('canvas');
+            probe.width = 4; probe.height = 4;
+            const pctx = probe.getContext('2d', { willReadFrequently: true });
+            const rr = frame.getBoundingClientRect();
+            const psx = videoElement.videoWidth / window.innerWidth, psy = videoElement.videoHeight / window.innerHeight;
+            pctx.drawImage(videoElement, (rr.left + rr.width / 2) * psx - 2, (rr.top + rr.height * 0.55) * psy - 2, 4, 4, 0, 0, 4, 4);
+            const dd = pctx.getImageData(0, 0, 4, 4).data;
+            let R = 0, G = 0, B = 0;
+            for (let i = 0; i < 16; i++) { R += dd[i * 4]; G += dd[i * 4 + 1]; B += dd[i * 4 + 2]; }
+            fillColor = 'rgb(' + Math.round(R / 16) + ',' + Math.round(G / 16) + ',' + Math.round(B / 16) + ')';
+          } catch (e) { fillColor = keyColor; }
+        }
+
         const outStream = canvas.captureStream(60);
         const vTrack = outStream.getVideoTracks()[0];
         if (vTrack && 'contentHint' in vTrack) vTrack.contentHint = 'detail';
+        if (audioDest) audioDest.stream.getAudioTracks().forEach(t => outStream.addTrack(t));
 
-        const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-          ? 'video/webm;codecs=vp9'
-          : (MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm');
+        const mimeType = pickRecorderMime(!!audioDest);
 
         const mediaRecorder = new MediaRecorder(outStream, {
           mimeType: mimeType,
-          videoBitsPerSecond: 25000000
+          videoBitsPerSecond: 25000000,
+          audioBitsPerSecond: 128000
         });
 
         const recordedChunks = [];
@@ -1685,7 +2190,7 @@
 
           const a = document.createElement('a');
           a.href = url;
-          a.download = `ethos-chat-${mode === 'last3' ? 'ultimos3' : 'completo'}-${Date.now()}.${ext}`;
+          a.download = `ethos-chat-${mode === 'last3' ? 'ultimos3' : 'completo'}${vertical ? '-9x16' : ''}-${Date.now()}.${ext}`;
           document.body.appendChild(a);
           a.click();
           a.remove();
@@ -1707,41 +2212,39 @@
         recordingMode = (mode === 'last3');   // en 'last3' solo se mantienen los 3 últimos mensajes
 
         mediaRecorder.start();
-        countRecording();
 
         const renderFrameLoop = () => {
           if (!isRecordingActive) return;
 
           const r = frame.getBoundingClientRect();
-          const sx = cropped ? videoElement.videoWidth / r.width : videoElement.videoWidth / window.innerWidth;
-          const sy = cropped ? videoElement.videoHeight / r.height : videoElement.videoHeight / window.innerHeight;
+          const sx = videoElement.videoWidth / window.innerWidth;
+          const sy = videoElement.videoHeight / window.innerHeight;
 
-          // Con recorte nativo se usa el fotograma entero; si no, coordenadas enteras (copia 1:1)
-          const srcX = cropped ? 0 : Math.max(0, Math.round(r.left * sx));
-          const srcY = cropped ? 0 : Math.max(0, Math.round(r.top * sy));
-          const srcW = cropped ? videoElement.videoWidth : Math.min(videoElement.videoWidth - srcX, Math.round(r.width * sx));
-          const srcH = cropped ? videoElement.videoHeight : Math.min(videoElement.videoHeight - srcY, Math.round(r.height * sy));
+          // Coordenadas enteras: copia 1:1 de píxeles del teléfono, sin difuminar los bordes
+          // En modo croma se descartan 2 px de cada borde: ahí solo hay marco/sombra del teléfono, no contenido,
+          // y así no se cuelan líneas oscuras sobre el fondo verde.
+          const trim = keyed ? 2 : 0;
+          const srcX = Math.round(r.left * sx) + trim;
+          const srcY = Math.round(r.top * sy) + trim;
+          const srcW = Math.round(r.width * sx) - trim * 2;
+          const srcH = Math.round(r.height * sy) - trim * 2;
 
-          let dx = 0, dy = 0, dw = outW, dh = outH;
-          if (shorts) { // encaje tipo "contain", centrado y sin deformar
-            const margin = 24;
-            const fit = Math.min((outW - margin * 2) / srcW, (outH - margin * 2) / srcH);
-            dw = Math.round(srcW * fit / 2) * 2; dh = Math.round(srcH * fit / 2) * 2;
-            dx = Math.round((outW - dw) / 2); dy = Math.round((outH - dh) / 2);
+          if (keyed || vertical) {
+            ctx.fillStyle = keyed ? fillColor : '#000000';
+            ctx.fillRect(0, 0, canvasW, canvasH);
           }
-
-          if (useChroma || shorts) {
-            ctx.fillStyle = useChroma ? '#00ff00' : (state.customColors.canvasBg || '#000000');
-            ctx.fillRect(0, 0, outW, outH);
+          if (keyed) {
             ctx.save();
-            // Esquinas redondeadas del marco (1px hacia dentro para quitar el borde mezclado)
-            const radius = Math.max(0, cssRadius * (dw / frame.offsetWidth) - 1);
-            roundedRectPath(ctx, dx + 1, dy + 1, dw - 2, dh - 2, radius);
+            // Recorte redondeado 1px hacia dentro: elimina el borde mezclado con el fondo de la página
+            // (el resto del fondo ya es del mismo color, así que el recorte no se nota)
+            const inset = 1;
+            const radius = cssRadius * (dW / frame.offsetWidth) - inset;
+            roundedRectPath(ctx, dX + inset, dY + inset, dW - inset * 2, dH - inset * 2, radius);
             ctx.clip();
-            ctx.drawImage(videoElement, srcX, srcY, srcW, srcH, dx, dy, dw, dh);
+            ctx.drawImage(videoElement, srcX, srcY, srcW, srcH, dX, dY, dW, dH);
             ctx.restore();
           } else {
-            ctx.drawImage(videoElement, srcX, srcY, srcW, srcH, 0, 0, outW, outH);
+            ctx.drawImage(videoElement, srcX, srcY, srcW, srcH, dX, dY, dW, dH);
           }
 
           requestAnimationFrame(renderFrameLoop);
@@ -1806,12 +2309,11 @@
         document.getElementById('input-profile-name').value = firstSpeaker;
       }
 
-      const cap = freeLimit('messages');
-      const truncated = newMessages.length > cap;
-      if (truncated) newMessages.length = cap;
-      state.messages = sanitizeMessages(newMessages);
+      const cap = planLimits().maxMessages;
+      const trimmed = newMessages.length > cap;
+      state.messages = newMessages.slice(0, cap);
       renderAll();
-      if (truncated) showToast(`Plan gratuito: solo se han importado los primeros ${cap} mensajes.`, true);
+      if (trimmed) { showToast('Se han convertido los primeros ' + cap + ' mensajes (límite de tu plan).', true); if (state.currentUser.plan === 'free') openPricingModal(); }
       else showToast('¡Guion convertido a mensajes!');
     }
 
@@ -1898,7 +2400,7 @@
     }
 
     function resetZoom() {
-      state.zoom = 0.7;
+      state.zoom = 1.0;
       updateZoomUI();
     }
 
@@ -1923,150 +2425,304 @@
     // MODO GRABACIÓN: solo se ven los últimos N mensajes en el chat
     const RECORDING_VISIBLE_MESSAGES = 3;
     let recordingMode = false;
+    let recAudio = null;   // generador de sonidos mientras se graba
 
     function trimChatToLast(keep) {
       const chatBody = document.getElementById('chat-body');
-      const isMsg = el => el.id !== 'temp-typing-indicator' && !el.querySelector(':scope > span.uppercase') ;
-      let msgs = Array.from(chatBody.children).filter(isMsg);
-      while (msgs.length > keep) {
-        msgs.shift().remove();
-      }
+      const isMsg = el => el.id !== 'temp-typing-indicator' && !el.dataset.divider;
+      const msgs = Array.from(chatBody.children).filter(isMsg);
+      while (msgs.length > keep) msgs.shift().remove();
       // quitar separadores que hayan quedado al inicio
       while (chatBody.firstElementChild && chatBody.firstElementChild.id !== 'temp-typing-indicator' && !isMsg(chatBody.firstElementChild)) {
         chatBody.firstElementChild.remove();
       }
     }
 
+    // =====================================================================
+    // PLANTILLAS POR PLATAFORMA (cabecera, barra inferior, colores, burbujas)
+    // Solo HTML estático: los datos del usuario se insertan después con textContent.
+    // =====================================================================
+    const PLATFORM_DEFAULT_STATUS = { instagram: 'Activo(a) hoy', whatsapp: 'en línea', imessage: '' };
+    const PLATFORM_PRESET = { instagram: 'ig-blue', whatsapp: 'whatsapp-green', imessage: 'imessage' };
+
+    const PLATFORM_THEME = {
+      instagram: { header: 'rgba(0,0,0,0.9)', border: 'rgba(38,38,38,0.8)', status: '#000000', input: '#000000', wallpaper: 'none' },
+      whatsapp:  { header: '#202c33', border: 'transparent', status: '#202c33', input: '#0b141a',
+                   wallpaper: 'radial-gradient(rgba(255,255,255,0.045) 1.2px, transparent 1.2px)' },
+      imessage:  { header: '#1c1c1e', border: '#2c2c2e', status: '#1c1c1e', input: '#000000', wallpaper: 'none' }
+    };
+
+    const HEADER_TPL = {
+      instagram: `
+        <div class="flex items-center gap-2.5">
+          <button class="text-white text-sm hover:opacity-80"><i class="fa-solid fa-chevron-left"></i></button>
+          <div class="relative story-ring shrink-0"><img id="display-avatar" alt="" class="w-7 h-7 rounded-full object-cover border border-black"></div>
+          <div class="leading-tight truncate">
+            <div class="flex items-center gap-1">
+              <span id="display-name" class="font-extrabold text-[11px] text-white truncate"></span>
+              <i id="display-badge" class="fa-solid fa-circle-check text-[9px] text-sky-400"></i>
+            </div>
+            <span id="display-handle-status" class="text-[9px] text-neutral-400 block truncate"></span>
+          </div>
+        </div>
+        <div id="header-icons" class="flex items-center gap-3 text-white text-sm shrink-0">
+          <i class="fa-solid fa-phone"></i><i class="fa-solid fa-video"></i><i class="fa-regular fa-circle-info"></i>
+        </div>`,
+      whatsapp: `
+        <div class="flex items-center gap-2 min-w-0">
+          <i class="fa-solid fa-arrow-left text-sm text-[#e9edef]"></i>
+          <img id="display-avatar" alt="" class="w-8 h-8 rounded-full object-cover shrink-0">
+          <div class="leading-tight min-w-0 ml-0.5">
+            <span id="display-name" class="font-semibold text-[13px] text-[#e9edef] truncate block"></span>
+            <span id="display-handle-status" class="text-[10px] text-[#8696a0] block truncate"></span>
+          </div>
+        </div>
+        <div id="header-icons" class="flex items-center gap-4 text-[#e9edef] text-[15px] shrink-0">
+          <i class="fa-solid fa-video"></i><i class="fa-solid fa-phone"></i><i class="fa-solid fa-ellipsis-vertical"></i>
+        </div>`,
+      imessage: `
+        <div class="w-full flex items-center justify-between">
+          <div class="w-14 flex items-center text-[#0a84ff]"><i class="fa-solid fa-chevron-left text-base"></i></div>
+          <div class="flex flex-col items-center leading-tight min-w-0">
+            <img id="display-avatar" alt="" class="w-9 h-9 rounded-full object-cover">
+            <span class="mt-0.5 text-[10px] text-neutral-200 flex items-center gap-0.5 max-w-[150px]">
+              <span id="display-name" class="truncate"></span><i class="fa-solid fa-chevron-right text-[7px] text-neutral-500"></i>
+            </span>
+            <span id="display-handle-status" class="hidden"></span>
+          </div>
+          <div id="header-icons" class="w-14 flex justify-end text-[#0a84ff] text-base"><i class="fa-solid fa-video"></i></div>
+        </div>`
+    };
+
+    const INPUT_TPL = {
+      instagram: `
+        <div class="flex-1 bg-[#1e1e1e] border border-neutral-800 rounded-full px-3 py-1.5 flex items-center justify-between text-[11px] text-neutral-400">
+          <div class="flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-[#0095f6] flex items-center justify-center text-white text-[9px]"><i class="fa-solid fa-camera"></i></span>
+            <span class="text-neutral-300">Envía un mensaje...</span>
+          </div>
+          <div class="flex items-center gap-2.5 text-neutral-300 text-xs">
+            <i class="fa-solid fa-microphone"></i><i class="fa-regular fa-image"></i><i class="fa-regular fa-face-smile"></i><i class="fa-solid fa-heart text-rose-500"></i>
+          </div>
+        </div>`,
+      whatsapp: `
+        <div class="flex-1 bg-[#202c33] rounded-full px-3 py-2 flex items-center justify-between text-[12px] text-[#8696a0]">
+          <div class="flex items-center gap-2.5"><i class="fa-regular fa-face-smile text-sm"></i><span>Mensaje</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-paperclip"></i><i class="fa-solid fa-camera"></i></div>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-[#00a884] flex items-center justify-center text-white text-sm shrink-0"><i class="fa-solid fa-microphone"></i></div>`,
+      imessage: `
+        <div class="w-8 h-8 rounded-full bg-[#2c2c2e] flex items-center justify-center text-neutral-300 text-sm shrink-0"><i class="fa-solid fa-plus"></i></div>
+        <div class="flex-1 border border-[#3a3a3c] rounded-full px-3 py-1.5 flex items-center justify-between text-[12px] text-neutral-500">
+          <span>iMessage</span><i class="fa-solid fa-microphone text-neutral-400"></i>
+        </div>`
+    };
+
+    function applyPlatformChrome() {
+      const plat = PLATFORMS.includes(state.platform) ? state.platform : 'instagram';
+      const th = PLATFORM_THEME[plat];
+      const header = document.getElementById('chat-header');
+      const input = document.getElementById('chat-input-bar');
+      const statusBar = document.getElementById('phone-status-bar');
+      const body = document.getElementById('chat-body');
+      header.innerHTML = HEADER_TPL[plat];      // plantilla estática propia (sin datos del usuario)
+      input.innerHTML = INPUT_TPL[plat];
+      header.style.backgroundColor = th.header;
+      header.style.borderBottomColor = th.border;
+      input.style.backgroundColor = th.input;
+      statusBar.style.backgroundColor = th.status;
+      body.style.backgroundImage = th.wallpaper;
+      body.style.backgroundSize = th.wallpaper === 'none' ? '' : '22px 22px';
+    }
+
+    function refreshPlatformButtons() {
+      PLATFORMS.forEach(pl => {
+        const btn = document.getElementById('btn-platform-' + pl);
+        if (btn) btn.className = "platform-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-neutral-700 bg-neutral-800/40 text-neutral-400 hover:text-white font-semibold text-[11px] transition";
+      });
+      const active = document.getElementById('btn-platform-' + state.platform);
+      if (active) active.className = "platform-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-red-600 bg-red-600/10 text-white font-semibold text-[11px] transition";
+    }
+
+    function setPlatform(plat) {
+      if (!PLATFORMS.includes(plat)) return;
+      state.platform = plat;
+      refreshPlatformButtons();
+
+      // Si el estado era el de otra plataforma ("Activo(a) hoy", "en línea"...), se adapta
+      if (Object.values(PLATFORM_DEFAULT_STATUS).includes(state.profile.status)) {
+        state.profile.status = PLATFORM_DEFAULT_STATUS[plat];
+        const inp = document.getElementById('input-profile-status');
+        if (inp) inp.value = state.profile.status;
+      }
+      applyColorPreset(PLATFORM_PRESET[plat], true);
+      applyPlatformChrome();
+      updateProfileUI();
+      renderMessages();
+    }
+
+    function sentTextColor() { return state.customColors.sentText; }
+    function setSentBackground(node) {
+      const c = state.customColors.sentBg;
+      if (c.includes('gradient')) node.style.background = c; else node.style.backgroundColor = c;
+    }
+
     function appendSingleMessageToChat(msg) {
       const chatBody = document.getElementById('chat-body');
+      const plat = state.platform;
+      const me = msg.sender === 'me';
+      if (recAudio) recAudio.play(msg);
 
+      // ---- Separador de fecha ----
       if (msg.type === 'divider') {
-        const div = document.createElement('div');
-        div.className = "text-center my-4 select-none msg-animate";
-        const sp = document.createElement('span');
-        sp.className = 'text-[10px] uppercase font-bold text-neutral-500 tracking-wider';
-        sp.textContent = msg.text;
-        div.appendChild(sp);
-        chatBody.appendChild(div);
-        chatBody.scrollTop = chatBody.scrollHeight;
-        return;
-      }
-
-      if (msg.type === 'seen') {
-        const d = document.createElement('div');
-        d.className = `text-[10px] text-neutral-500 mb-1 msg-animate ${msg.sender === 'me' ? 'text-right pr-1' : 'text-left pl-10'}`;
-        d.textContent = msg.text || 'Visto';
-        chatBody.appendChild(d);
-        if (recordingMode) trimChatToLast(RECORDING_VISIBLE_MESSAGES);
-        chatBody.scrollTop = chatBody.scrollHeight;
-        return;
-      }
-      if (msg.type === 'missed') {
-        const d = document.createElement('div');
-        d.className = 'flex justify-center my-2 msg-animate';
-        const pill = document.createElement('div');
-        pill.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-[11px] text-rose-400 font-semibold';
-        const ic = document.createElement('i'); ic.className = 'fa-solid fa-phone-slash text-[10px]';
-        const tx = document.createElement('span'); tx.textContent = msg.text || 'Llamada perdida';
-        pill.append(ic, tx); d.appendChild(pill); chatBody.appendChild(d);
-        if (recordingMode) trimChatToLast(RECORDING_VISIBLE_MESSAGES);
-        chatBody.scrollTop = chatBody.scrollHeight;
-        return;
-      }
-
-      const row = document.createElement('div');
-      row.className = `flex items-end gap-2 mb-1 msg-animate ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`;
-
-      if (msg.sender === 'them') {
-        const avatar = document.createElement('img');
-        avatar.src = state.profile.avatar;
-        avatar.className = "w-7 h-7 rounded-full object-cover mb-0.5 border border-neutral-800 shrink-0";
-        row.appendChild(avatar);
-      }
-
-      const bubble = document.createElement('div');
-      bubble.className = "max-w-[78%] rounded-2xl text-[13px] leading-snug break-words relative group select-none px-3.5 py-2.5";
-
-      if (msg.sender === 'me') {
-        bubble.style.borderBottomRightRadius = '4px';
-        if (state.customColors.sentBg.includes('gradient')) {
-          bubble.style.background = state.customColors.sentBg;
+        const d = mk('div', 'text-center my-3 select-none msg-animate');
+        d.dataset.divider = '1';
+        if (plat === 'whatsapp') {
+          const pill = mk('span', 'inline-block px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide', msg.text);
+          pill.style.backgroundColor = '#182229';
+          pill.style.color = '#8696a0';
+          d.appendChild(pill);
         } else {
-          bubble.style.backgroundColor = state.customColors.sentBg;
+          d.appendChild(mk('span', 'text-[10px] uppercase font-bold text-neutral-500 tracking-wider', msg.text));
         }
-        bubble.style.color = state.customColors.sentText;
+        chatBody.appendChild(d);
+        chatBody.scrollTop = chatBody.scrollHeight;
+        return;
+      }
+
+      // ---- Agrupación (para colas y espaciados reales) ----
+      const idx = state.messages.findIndex(m => m.id === msg.id);
+      const prev = idx > 0 ? state.messages[idx - 1] : null;
+      const next = idx >= 0 ? state.messages[idx + 1] : null;
+      const firstInGroup = !(prev && prev.type !== 'divider' && prev.sender === msg.sender);
+      const lastInGroup = !(next && next.type !== 'divider' && next.sender === msg.sender);
+
+      const row = mk('div', 'flex items-end gap-2 msg-animate ' + (me ? 'justify-end' : 'justify-start'));
+      if (plat === 'instagram') {
+        row.style.marginBottom = '4px';
       } else {
-        bubble.style.borderBottomLeftRadius = '4px';
-        bubble.style.backgroundColor = state.customColors.receivedBg;
-        bubble.style.color = state.customColors.receivedText;
+        row.style.marginTop = firstInGroup ? '6px' : '0';
+        row.style.marginBottom = lastInGroup ? '2px' : '1px';
+      }
+
+      // Avatares: solo en Instagram
+      if (plat === 'instagram') {
+        if (!me) {
+          const av = mk('img', 'w-7 h-7 rounded-full object-cover mb-0.5 border border-neutral-800 shrink-0');
+          setSafeImg(av, state.profile.avatar);
+          row.appendChild(av);
+        } else {
+          const av = mk('img', 'w-7 h-7 rounded-full object-cover mb-0.5 border border-neutral-800 shrink-0');
+          setSafeImg(av, state.profile.myAvatar || state.profile.avatar);
+          row.appendChild(av);
+        }
+      }
+
+      // ---- Burbuja ----
+      const bubble = mk('div', 'relative break-words select-none');
+      bubble.style.maxWidth = plat === 'instagram' ? '78%' : '80%';
+      if (me) { setSentBackground(bubble); bubble.style.color = state.customColors.sentText; }
+      else { bubble.style.backgroundColor = state.customColors.receivedBg; bubble.style.color = state.customColors.receivedText; }
+
+      if (plat === 'instagram') {
+        bubble.style.borderRadius = '16px';
+        bubble.style.padding = '10px 14px';
+        bubble.style.fontSize = '13px';
+        bubble.style.lineHeight = '1.35';
+        if (me) bubble.style.borderBottomRightRadius = '4px'; else bubble.style.borderBottomLeftRadius = '4px';
+      } else if (plat === 'whatsapp') {
+        bubble.style.borderRadius = '8px';
+        bubble.style.padding = '6px 8px 5px 9px';
+        bubble.style.fontSize = '13px';
+        bubble.style.lineHeight = '1.35';
+        bubble.style.display = 'flow-root';
+        if (firstInGroup) { if (me) bubble.style.borderTopRightRadius = '0'; else bubble.style.borderTopLeftRadius = '0'; }
+      } else {
+        bubble.style.borderRadius = '18px';
+        bubble.style.padding = '7px 12px';
+        bubble.style.fontSize = '13px';
+        bubble.style.lineHeight = '1.3';
+        if (lastInGroup) { if (me) bubble.style.borderBottomRightRadius = '5px'; else bubble.style.borderBottomLeftRadius = '5px'; }
       }
 
       if (msg.type === 'text') {
-        if (msg.replyTo) {
-          const quote = document.createElement('div');
-          quote.className = 'mb-1.5 pl-2 border-l-2 border-white/40 text-[11px] opacity-75 line-clamp-2';
-          quote.textContent = msg.replyTo;
-          bubble.appendChild(quote);
-        }
         bubble.appendChild(document.createTextNode(msg.text));
       } else if (msg.type === 'image') {
-        bubble.className = "max-w-[70%] rounded-2xl overflow-hidden p-0.5 bg-neutral-900 border border-neutral-800 relative";
-        const im = document.createElement('img');
-        im.src = safeImgUrl(msg.imgUrl); im.className = 'w-full h-auto rounded-xl object-cover';
-        bubble.appendChild(im);
+        bubble.style.padding = '3px';
+        bubble.style.overflow = 'hidden';
+        bubble.style.maxWidth = '70%';
+        if (plat === 'instagram') { bubble.style.background = 'none'; bubble.style.backgroundColor = '#171717'; bubble.style.border = '1px solid #262626'; }
+        const img = mk('img', 'w-full h-auto object-cover');
+        img.style.display = 'block';
+        img.style.borderRadius = plat === 'whatsapp' ? '6px' : (plat === 'imessage' ? '15px' : '12px');
+        setSafeImg(img, msg.imgUrl);
+        bubble.appendChild(img);
       } else if (msg.type === 'audio') {
-        bubble.className = "audio-bubble min-w-[190px] rounded-2xl p-2.5 flex items-center gap-3 select-none shadow-sm relative";
-        bubble.style.backgroundColor = msg.sender === 'me' ? (state.customColors.sentBg.includes('gradient') ? '#3797f0' : state.customColors.sentBg) : state.customColors.receivedBg;
-        bubble.style.color = msg.sender === 'me' ? state.customColors.sentText : state.customColors.receivedText;
-
-        bubble.innerHTML = `
-          <button onclick="toggleAudioPlayState(this)" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white shrink-0 transition">
-            <i class="fa-solid fa-play text-[10px]"></i>
-          </button>
-          <div class="flex-1 space-y-1">
-            <div class="flex items-center gap-1 h-3">
-              <span class="wave-bar h-2"></span>
-              <span class="wave-bar h-3"></span>
-              <span class="wave-bar h-1.5"></span>
-              <span class="wave-bar h-3.5"></span>
-              <span class="wave-bar h-2"></span>
-            </div>
-            <div class="flex justify-between items-center text-[9px] opacity-80 font-mono">
-              <span class="js-audiospec"></span>
-              <i class="fa-solid fa-microphone"></i>
-            </div>
-          </div>
-        `;
-        bubble.querySelector('.js-audiospec').textContent = TIME_RE.test(msg.audioSpec) ? msg.audioSpec : '0:14';
+        bubble.classList.add('audio-bubble');
+        bubble.style.minWidth = '190px';
+        const wrap = mk('div', 'flex items-center gap-3');
+        const btn = mk('button', 'w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white shrink-0 transition');
+        btn.type = 'button';
+        btn.appendChild(mk('i', 'fa-solid fa-play text-[10px]'));
+        btn.addEventListener('click', () => toggleAudioPlayState(btn));
+        const mid = mk('div', 'flex-1 space-y-1');
+        const waves = mk('div', 'flex items-center gap-1 h-3');
+        ['h-2', 'h-3', 'h-1.5', 'h-3.5', 'h-2'].forEach(h => waves.appendChild(mk('span', 'wave-bar ' + h)));
+        const foot = mk('div', 'flex justify-between items-center text-[9px] opacity-80 font-mono');
+        foot.appendChild(mk('span', '', msg.audioSpec || '0:14'));
+        foot.appendChild(mk('i', 'fa-solid fa-microphone'));
+        mid.appendChild(waves);
+        mid.appendChild(foot);
+        wrap.appendChild(btn);
+        wrap.appendChild(mid);
+        bubble.appendChild(wrap);
       }
 
+      // WhatsApp: hora y doble check dentro de la burbuja
+      if (plat === 'whatsapp') {
+        const meta = mk('span');
+        meta.style.cssText = 'float:right;margin:6px 0 -3px 10px;font-size:9px;opacity:.7;display:inline-flex;align-items:center;gap:3px;line-height:1;';
+        meta.appendChild(document.createTextNode(msg.time || state.phoneBar.time));
+        if (me) {
+          const ticks = mk('i', 'fa-solid fa-check-double');
+          ticks.style.color = '#53bdeb';
+          ticks.style.fontSize = '9px';
+          meta.appendChild(ticks);
+        }
+        bubble.appendChild(meta);
+      }
+
+      // Reacción
       if (msg.reaction) {
-        const reactBadge = document.createElement('div');
-        const bgCanvasColor = state.customColors.canvasBg || '#000000';
-        
-        reactBadge.className = `absolute -bottom-3 ${msg.sender === 'me' ? 'left-1' : 'right-1'} flex items-center justify-center shadow-sm z-10`;
-        reactBadge.style.backgroundColor = state.customColors.receivedBg; 
-        reactBadge.style.border = `3px solid ${bgCanvasColor}`;
-        reactBadge.style.borderRadius = '999px';
-        reactBadge.style.minWidth = '22px';
-        reactBadge.style.height = '22px';
-        reactBadge.style.fontSize = '12px';
-        reactBadge.style.lineHeight = '1';
-        reactBadge.textContent = msg.reaction;
-        
-        bubble.appendChild(reactBadge);
-        row.style.marginBottom = '12px';
-      }
-
-      if (msg.sender === 'me') {
-        const myAvatar = document.createElement('img');
-        myAvatar.src = state.profile.myAvatar || state.profile.avatar;
-        myAvatar.className = "w-7 h-7 rounded-full object-cover mb-0.5 border border-neutral-800 shrink-0";
-        row.appendChild(myAvatar);
+        const badge = mk('div', 'absolute -bottom-3 ' + (me ? 'left-1' : 'right-1') + ' flex items-center justify-center shadow-sm z-10', msg.reaction);
+        badge.style.backgroundColor = state.customColors.receivedBg;
+        badge.style.border = '3px solid ' + (state.customColors.canvasBg || '#000000');
+        badge.style.borderRadius = '999px';
+        badge.style.minWidth = '22px';
+        badge.style.height = '22px';
+        badge.style.fontSize = '12px';
+        badge.style.lineHeight = '1';
+        bubble.appendChild(badge);
+        row.style.marginBottom = '14px';
       }
 
       row.appendChild(bubble);
-      chatBody.appendChild(row);
+
+      // iMessage: "Entregado / Leído" bajo el último mensaje enviado
+      let container = row;
+      if (plat === 'imessage' && me && idx >= 0) {
+        let lastMe = -1;
+        state.messages.forEach((m, i) => { if (m.sender === 'me' && m.type !== 'divider') lastMe = i; });
+        if (idx === lastMe) {
+          const read = state.messages.slice(idx + 1).some(m => m.sender === 'them' && m.type !== 'divider');
+          container = mk('div', 'flex flex-col items-end msg-animate');
+          row.classList.remove('msg-animate');
+          container.appendChild(row);
+          container.appendChild(mk('span', 'text-[10px] text-neutral-500 font-semibold mr-1 mt-0.5', read ? 'Leído' : 'Entregado'));
+        }
+      }
+
+      chatBody.appendChild(container);
       if (recordingMode) trimChatToLast(RECORDING_VISIBLE_MESSAGES);
       chatBody.scrollTop = chatBody.scrollHeight;
     }
@@ -2080,44 +2736,59 @@
     function renderEditorMessagesList() {
       const container = document.getElementById('editor-messages-list');
       const counter = document.getElementById('msg-counter');
-      container.innerHTML = '';
-      counter.textContent = state.messages.length;
+      container.replaceChildren();
+      counter.textContent = state.currentUser.plan === 'free' ? state.messages.length + '/' + planLimits().maxMessages : state.messages.length;
 
       if (state.messages.length === 0) {
-        container.innerHTML = `<p class="text-xs text-neutral-500 text-center py-4 italic">No hay mensajes en la lista.</p>`;
+        container.appendChild(mk('p', 'text-center text-xs text-neutral-500 py-4', 'No hay mensajes. Añade uno o genera un chat con IA.'));
         return;
       }
 
-      const emojis = ['❤️', '😂', '🔥', '💀', '😭', '😡'];
-
       state.messages.forEach((msg, index) => {
-        const item = document.createElement('div');
-        item.className = "bg-[#0a0a0a] border border-neutral-800 rounded-xl p-2.5 flex flex-col gap-2 text-xs";
+        const item = mk('div', 'bg-[#0a0a0a] border border-neutral-800 rounded-xl p-2.5 space-y-2');
+        const top = mk('div', 'flex items-center gap-2');
 
-        const senderBadge = msg.sender === 'me' 
-          ? `<span class="bg-red-600/20 text-red-400 font-bold text-[10px] px-1.5 py-0.5 rounded shrink-0">Yo</span>`
-          : `<span class="bg-neutral-800 text-neutral-300 font-bold text-[10px] px-1.5 py-0.5 rounded shrink-0">Él/Ella</span>`;
+        let tag;
+        if (msg.type === 'divider') tag = mk('span', 'text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 shrink-0', 'Fecha');
+        else if (msg.sender === 'me') tag = mk('span', 'text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 shrink-0', 'Yo');
+        else tag = mk('span', 'text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 shrink-0', 'Él/Ella');
 
-        let emojiButtons = emojis.map(e => `
-          <button onclick="toggleReaction('${msg.id}', '${e}')" class="px-1 py-0.5 rounded hover:bg-neutral-800 text-[11px] ${msg.reaction === e ? 'bg-red-600 text-white' : ''}">${e}</button>
-        `).join('');
+        let label;
+        if (msg.type === 'text' || msg.type === 'divider') label = msg.text;
+        else if (msg.type === 'audio') label = '🎤 Nota de voz (' + msg.audioSpec + ')';
+        else label = '🖼️ Imagen';
+        const labelEl = mk('span', 'flex-1 min-w-0 truncate text-[11px] text-neutral-300', label);
 
-        const labelText = msg.type === 'text' ? msg.text : (msg.type === 'image' ? '[Imagen]' : (msg.type === 'audio' ? `🎙️ Nota de Voz (${msg.audioSpec})` : `[${msg.text}]`));
+        const controls = mk('div', 'flex items-center gap-1 shrink-0');
+        const iconBtn = (icon, title, cls, handler) => {
+          const b = mk('button', 'w-6 h-6 rounded-md bg-neutral-800 hover:bg-neutral-700 text-[10px] flex items-center justify-center transition ' + cls);
+          b.type = 'button'; b.title = title;
+          b.appendChild(mk('i', icon));
+          b.addEventListener('click', handler);
+          return b;
+        };
+        controls.appendChild(iconBtn('fa-solid fa-arrow-up', 'Subir', 'text-neutral-300', () => moveMessage(index, 'up')));
+        controls.appendChild(iconBtn('fa-solid fa-arrow-down', 'Bajar', 'text-neutral-300', () => moveMessage(index, 'down')));
+        controls.appendChild(iconBtn('fa-regular fa-trash-can', 'Eliminar', 'text-rose-400', () => deleteMessage(msg.id)));
 
-        item.innerHTML = `
-          <div class="flex items-center gap-2">
-            ${msg.type !== 'divider' ? senderBadge : '<span class="bg-amber-500/20 text-amber-300 font-bold text-[10px] px-1.5 py-0.5 rounded">Fecha</span>'}
-            <span class="js-label flex-1 text-neutral-200 font-medium truncate"></span>
-            <div class="flex items-center gap-1 shrink-0">
-              <button onclick="moveMessage(${index}, 'up')" class="p-1 hover:text-red-400 text-neutral-500"><i class="fa-solid fa-arrow-up"></i></button>
-              <button onclick="moveMessage(${index}, 'down')" class="p-1 hover:text-red-400 text-neutral-500"><i class="fa-solid fa-arrow-down"></i></button>
-              <button onclick="deleteMessage('${msg.id}')" class="p-1 hover:text-rose-400 text-neutral-500"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-          </div>
-          ${msg.type !== 'divider' ? `<div class="flex items-center justify-between border-t border-neutral-800 pt-1 text-[10px] text-neutral-400"><span>Reacción:</span><div class="flex gap-1">${emojiButtons}</div></div>` : ''}
-        `;
+        top.appendChild(tag);
+        top.appendChild(labelEl);
+        top.appendChild(controls);
+        item.appendChild(top);
 
-        item.querySelector('.js-label').textContent = labelText;
+        if (msg.type !== 'divider') {
+          const reactRow = mk('div', 'flex items-center justify-between text-[10px] text-neutral-500');
+          reactRow.appendChild(mk('span', '', 'Reacción:'));
+          const emojis = mk('div', 'flex gap-1');
+          ALLOWED_REACTIONS.forEach(e => {
+            const b = mk('button', 'w-6 h-6 rounded-md text-xs flex items-center justify-center transition ' + (msg.reaction === e ? 'bg-red-600 text-white' : 'bg-neutral-800 hover:bg-neutral-700'), e);
+            b.type = 'button';
+            b.addEventListener('click', () => toggleReaction(msg.id, e));
+            emojis.appendChild(b);
+          });
+          reactRow.appendChild(emojis);
+          item.appendChild(reactRow);
+        }
         container.appendChild(item);
       });
     }
@@ -2160,7 +2831,7 @@
 
     function setNewMsgType(type) {
       state.newMsgType = type;
-      ['text', 'audio', 'image', 'divider', 'seen', 'missed'].forEach(t => {
+      ['text', 'audio', 'image', 'divider'].forEach(t => {
         const btn = document.getElementById(`btn-type-${t}`);
         if (btn) btn.className = "flex-1 py-1 rounded-md text-neutral-400 hover:text-neutral-200 transition";
       });
@@ -2183,10 +2854,10 @@
     }
 
     function addMessageFromForm() {
-      if (!canHaveMessages(state.messages.length + 1)) return;
+      if (state.messages.length >= planLimits().maxMessages) { toastMessageLimit(); return; }
       const type = state.newMsgType;
       const newMsg = {
-        id: Date.now().toString(),
+        id: 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
         type: type,
         sender: state.newMsgSender,
         time: state.phoneBar.time,
@@ -2194,27 +2865,19 @@
       };
 
       if (type === 'text') {
-        const txt = document.getElementById('input-new-msg-text').value.trim();
+        const txt = cleanStr(document.getElementById('input-new-msg-text').value.trim(), LIMITS.text);
         if (!txt) return;
-        newMsg.text = txt.slice(0, 500);
-        const rp = document.getElementById('input-new-msg-reply').value.trim().slice(0, 120);
-        if (rp) newMsg.replyTo = rp;
+        newMsg.text = txt;
         document.getElementById('input-new-msg-text').value = '';
-        document.getElementById('input-new-msg-reply').value = '';
       } else if (type === 'image') {
-        const img = document.getElementById('input-new-msg-img').value.trim();
-        if (!img) return;
-        const okImg = safeImgUrl(img);
-        if (!okImg) { showToast('URL de imagen no válida (usa https:// o sube un archivo)', true); return; }
-        newMsg.imgUrl = okImg;
+        const img = safeImgUrl(document.getElementById('input-new-msg-img').value);
+        if (!img) { showToast('Pon una URL https:// válida o sube una imagen', true); return; }
+        newMsg.imgUrl = img;
       } else if (type === 'audio') {
-        newMsg.audioSpec = document.getElementById('input-new-msg-audiospec').value.trim() || '0:14';
+        const spec = document.getElementById('input-new-msg-audiospec').value.trim();
+        newMsg.audioSpec = /^\d{1,2}:\d{2}$/.test(spec) ? spec : '0:14';
       } else if (type === 'divider') {
         newMsg.text = 'HOY ' + state.phoneBar.time;
-      } else if (type === 'seen') {
-        newMsg.text = 'Visto ' + state.phoneBar.time;
-      } else if (type === 'missed') {
-        newMsg.text = 'Llamada perdida';
       }
 
       state.messages.push(newMsg);
@@ -2224,68 +2887,86 @@
 
     function handleImageMessageUpload(e) {
       const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          document.getElementById('input-new-msg-img').value = evt.target.result;
-        };
-        reader.readAsDataURL(file);
+      if (!file) return;
+      if (!/^image\/(png|jpe?g|gif|webp|avif)$/.test(file.type) || file.size > 5 * 1024 * 1024) {
+        showToast('Sube una imagen PNG/JPG/WEBP de menos de 5 MB', true);
+        return;
       }
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        document.getElementById('input-new-msg-img').value = evt.target.result;
+      };
+      reader.readAsDataURL(file);
     }
 
-    function setPlatform(plat) {
-      if (plat !== 'instagram') { showToast('Esa plantilla llegará pronto', true); return; }
-      state.platform = plat;
-      ['instagram', 'whatsapp', 'imessage'].forEach(p => {
-        const btn = document.getElementById(`btn-platform-${p}`);
-        if (btn) btn.className = "platform-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-neutral-700 bg-neutral-800/40 text-neutral-400 hover:text-white font-semibold text-[11px] transition";
-      });
-      const activeBtn = document.getElementById(`btn-platform-${state.platform}`);
-      if (activeBtn) activeBtn.className = "platform-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-red-600 bg-red-600/10 text-white font-semibold text-[11px] transition";
-
-      if (plat !== 'instagram') { showToast('Esa plantilla llegará pronto', true); return; }
-      if (plat === 'instagram') {
-        applyColorPreset('ig-blue');
-      }
-
-      renderMessages();
-    }
 
     function updateProfile() {
-      state.profile.name = document.getElementById('input-profile-name').value || 'Usuario';
-      state.profile.status = document.getElementById('input-profile-status').value || '';
-      state.profile.avatar = document.getElementById('input-profile-avatar').value || 'https://placehold.co/150';
-      state.profile.myAvatar = document.getElementById('input-my-avatar').value || 'https://placehold.co/150';
+      state.profile.name = cleanStr(document.getElementById('input-profile-name').value, 60) || 'Usuario';
+      state.profile.status = cleanStr(document.getElementById('input-profile-status').value, 60);
+      // Si el campo dice "Imagen subida" (o no es una URL válida) se conserva la imagen actual
+      const av = safeImgUrl(document.getElementById('input-profile-avatar').value);
+      const myAv = safeImgUrl(document.getElementById('input-my-avatar').value);
+      if (av) state.profile.avatar = av;
+      if (myAv) state.profile.myAvatar = myAv;
       state.profile.verified = document.getElementById('check-verified').checked;
       updateProfileUI();
       renderMessages();
     }
 
     function updateProfileUI() {
-      document.getElementById('display-name').textContent = state.profile.name;
-      document.getElementById('display-handle-status').textContent = state.profile.status;
-      document.getElementById('display-avatar').src = state.profile.avatar;
+      const nameEl = document.getElementById('display-name');
+      const statusEl = document.getElementById('display-handle-status');
+      const avatarEl = document.getElementById('display-avatar');
       const badge = document.getElementById('display-badge');
-      if (state.profile.verified) badge.classList.remove('hidden'); else badge.classList.add('hidden');
+      if (nameEl) nameEl.textContent = state.profile.name;
+      if (statusEl) statusEl.textContent = state.profile.status;
+      if (avatarEl) setSafeImg(avatarEl, state.profile.avatar);
+      if (badge) badge.classList.toggle('hidden', !state.profile.verified);
+    }
+
+    // Vuelca el estado en los campos del panel (tras cargar un proyecto o generar con IA)
+    function syncFormFromState() {
+      const setVal = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
+      setVal('input-profile-name', state.profile.name);
+      setVal('input-profile-status', state.profile.status);
+      setVal('input-profile-avatar', (state.profile.avatar || '').startsWith('data:') ? 'Imagen subida' : state.profile.avatar);
+      setVal('input-my-avatar', (state.profile.myAvatar || '').startsWith('data:') ? 'Imagen subida' : (state.profile.myAvatar || ''));
+      const chk = document.getElementById('check-verified');
+      if (chk) chk.checked = !!state.profile.verified;
+      syncColorInputs();
+    }
+
+    function syncColorInputs() {
+      const c = state.customColors;
+      const setVal = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
+      if (!c.sentBg.includes('gradient')) { setVal('picker-sent-bg', c.sentBg); setVal('hex-sent-bg', c.sentBg); }
+      setVal('picker-received-bg', c.receivedBg); setVal('hex-received-bg', c.receivedBg);
+      setVal('picker-sent-text', c.sentText); setVal('hex-sent-text', c.sentText);
+      setVal('picker-received-text', c.receivedText); setVal('hex-received-text', c.receivedText);
+      setVal('picker-canvas-bg', c.canvasBg); setVal('hex-canvas-bg', c.canvasBg);
+      document.getElementById('chat-body').style.backgroundColor = c.canvasBg;
     }
 
     function handleAvatarUpload(e, target) {
       const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          if (target === 'me') {
-            state.profile.myAvatar = evt.target.result;
-            document.getElementById('input-my-avatar').value = "Imagen subida";
-          } else {
-            state.profile.avatar = evt.target.result;
-            document.getElementById('input-profile-avatar').value = "Imagen subida";
-          }
-          updateProfileUI();
-          renderMessages();
-        };
-        reader.readAsDataURL(file);
+      if (!file) return;
+      if (!/^image\/(png|jpe?g|gif|webp|avif)$/.test(file.type) || file.size > 5 * 1024 * 1024) {
+        showToast('Sube una imagen PNG/JPG/WEBP de menos de 5 MB', true);
+        return;
       }
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        if (target === 'me') {
+          state.profile.myAvatar = evt.target.result;
+          document.getElementById('input-my-avatar').value = "Imagen subida";
+        } else {
+          state.profile.avatar = evt.target.result;
+          document.getElementById('input-profile-avatar').value = "Imagen subida";
+        }
+        updateProfileUI();
+        renderMessages();
+      };
+      reader.readAsDataURL(file);
     }
 
     function saveProjectJSON() {
@@ -2294,12 +2975,24 @@
         openPricingModal();
         return;
       }
-      const project = { version: 2, profile: state.profile, customColors: state.customColors, messages: state.messages };
+      // Solo datos del proyecto: nunca licencia, plan ni correo
+      const project = {
+        app: 'ethos-chat-studio',
+        version: 2,
+        platform: state.platform,
+        viewMode: state.viewMode,
+        profile: state.profile,
+        customColors: state.customColors,
+        messages: state.messages
+      };
       const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = `ethos-chat-${Date.now()}.json`;
-      document.body.appendChild(a); a.click(); a.remove();
+      a.href = url;
+      a.download = 'ethos-chat-' + Date.now() + '.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
       showToast('¡Proyecto JSON guardado!');
     }
@@ -2310,20 +3003,29 @@
         openPricingModal();
         return;
       }
-      const file = event.target.files[0];
-      event.target.value = '';
+      const input = event.target;
+      const file = input.files[0];
       if (!file) return;
-      if (file.size > 8 * 1024 * 1024) { showToast('El archivo es demasiado grande (máx. 8 MB)', true); return; }
+      if (file.size > 12 * 1024 * 1024) { showToast('El archivo es demasiado grande', true); input.value = ''; return; }
+
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
           const project = sanitizeProject(JSON.parse(e.target.result));
           if (!project) throw new Error('formato');
-          applyProject(project);
-          showToast(`¡Proyecto cargado! ${project.messages.length} mensajes válidos`);
+          state.profile = project.profile;
+          state.customColors = project.customColors;
+          state.messages = project.messages;
+          state.platform = project.platform;
+          refreshPlatformButtons();
+          setViewMode(project.viewMode);
+          syncFormFromState();
+          renderAll();
+          showToast('¡Proyecto cargado con éxito!');
         } catch (err) {
-          showToast('Archivo no válido: no es un proyecto de Ethos', true);
+          showToast('El archivo no es un proyecto válido de Ethos', true);
         }
+        input.value = '';
       };
       reader.readAsText(file);
     }
@@ -2334,47 +3036,40 @@
       state.zoom = 1.0;
       updateZoomUI();
 
-      let exportScale = 1.5;
-      if (state.currentUser.plan === 'pro') exportScale = 3;
-      else if (state.currentUser.plan === 'creador') exportScale = 2;
+      const exportScale = planLimits().exportScale;
 
-      showToast(`Generando captura (${state.currentUser.plan === 'pro' ? '4K Ultra HD' : (state.currentUser.plan === 'creador' ? '2K' : 'HD').toString()})...`);
+      const label = state.currentUser.plan === 'pro' ? '4K Ultra HD' : (state.currentUser.plan === 'creador' ? '2K' : 'estándar');
+      showToast('Generando captura (' + label + ')...');
 
-      html2canvas(targetNode, {
-        scale: exportScale,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null
-      }).then(canvas => {
-        const image = canvas.toDataURL("image/png");
+      html2canvas(targetNode, { scale: exportScale, useCORS: true, backgroundColor: null }).then(canvas => {
         const link = document.createElement('a');
-        link.download = `ethos-chat-${Date.now()}.png`;
-        link.href = image;
+        link.download = 'ethos-chat-' + Date.now() + '.png';
+        link.href = canvas.toDataURL('image/png');
         link.click();
-        
-        state.zoom = originalZoom;
-        updateZoomUI();
         showToast('¡Imagen descargada con éxito!');
       }).catch(err => {
         console.error(err);
-        showToast('Error al exportar la imagen', true);
+        showToast('Error al exportar la imagen. Si usas imágenes de otra web, prueba a subirlas desde tu equipo.', true);
+      }).finally(() => {
+        state.zoom = originalZoom;
+        updateZoomUI();
       });
     }
 
     function copyChatImage() {
       const targetNode = document.getElementById('phone-frame');
       showToast('Copiando captura...');
-
-      html2canvas(targetNode, { scale: 2, useCORS: true, allowTaint: true }).then(canvas => {
+      html2canvas(targetNode, { scale: planLimits().exportScale, useCORS: true }).then(canvas => {
         canvas.toBlob(blob => {
-          if (navigator.clipboard && window.ClipboardItem) {
-            const item = new ClipboardItem({ 'image/png': blob });
-            navigator.clipboard.write([item]).then(() => showToast('¡Imagen copiada al portapapeles!'));
+          if (blob && navigator.clipboard && window.ClipboardItem) {
+            navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+              .then(() => showToast('¡Imagen copiada al portapapeles!'))
+              .catch(() => showToast('No se pudo copiar. Usa el botón Descargar', true));
           } else {
-            showToast('Usa el botón Descargar HD', true);
+            showToast('Tu navegador no permite copiar imágenes. Usa Descargar', true);
           }
         });
-      });
+      }).catch(() => showToast('Error al generar la captura', true));
     }
 
     function openLegalModal(type) {
@@ -2392,8 +3087,13 @@
       } else if (type === 'privacy') {
         title.textContent = "Política de Privacidad (RGPD)";
         body.innerHTML = `
-          <p>1. <strong>Tratamiento Local:</strong> Los chats se editan en tu navegador. En el servidor guardamos tu correo, nombre y plan para gestionar tu cuenta; los pagos los procesa Stripe y nunca almacenamos datos de tarjeta.</p>
-          <p>2. <strong>Seguridad:</strong> La integración con Stripe procesa cobros bajo encriptación SSL estricta.</p>
+          <p>1. <strong>Tus proyectos:</strong> Los chats, imágenes y configuraciones que creas se procesan en tu navegador; no se suben a nuestros servidores.</p>
+          <p>2. <strong>Datos de tu cuenta:</strong> Si creas una cuenta guardamos tu email, tu nombre (opcional), tu contraseña cifrada (nunca en texto plano), la fecha de alta y el estado de tu suscripción. Los usamos solo para identificarte y aplicar tu plan.</p>
+          <p>3. <strong>Pagos:</strong> Los cobros los procesa Stripe. No vemos ni guardamos los datos de tu tarjeta; solo recibimos el estado de tu suscripción.</p>
+          <p>4. <strong>Emails:</strong> Enviamos únicamente mensajes de servicio (confirmar tu email y recuperar tu contraseña) mediante un proveedor de envío.</p>
+          <p>5. <strong>Cookies:</strong> Usamos una única cookie técnica de sesión, necesaria para mantener tu inicio de sesión. No usamos cookies de publicidad.</p>
+          <p>6. <strong>IA:</strong> Si usas la generación con IA, la idea que escribes se envía al proveedor de IA para generar el guion.</p>
+          <p>7. <strong>Tus derechos:</strong> Puedes cambiar tu contraseña y eliminar tu cuenta y tus datos en cualquier momento desde "Cuenta". Para cualquier otra petición (acceso, rectificación, portabilidad) escríbenos al contacto del sitio.</p>
         `;
       } else if (type === 'legal') {
         title.textContent = "Aviso Legal y Marcas Registradas";
