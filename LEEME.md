@@ -17,7 +17,7 @@
 | `build.mjs`, `netlify.toml` | Preparan el despliegue |
 | `package.json` | Instala `@netlify/blobs` (lo hace Netlify solo) |
 | `_headers`, `ethos-logo.svg` | Cabeceras de seguridad y logo |
-| `test-auth.mjs`, `dev-server.mjs` | Pruebas (51) y servidor local de pruebas |
+| `test-auth.mjs`, `dev-server.mjs` | Pruebas (57) y servidor local de pruebas |
 
 > **El arrastrar y soltar (Netlify Drop) ya no sirve para esta versión:** necesita funciones y una dependencia.
 > Despliega desde un repositorio de GitHub conectado a Netlify (o con `npx netlify-cli deploy --prod --build`).
@@ -35,7 +35,10 @@ Tras cambiarlas hay que **volver a desplegar**.
 | `RESEND_API_KEY` y `MAIL_FROM` | Recomendadas | Para emails de confirmación y recuperar contraseña. `MAIL_FROM` = `Ethos <no-reply@tu-dominio.com>` |
 | `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` | Para entrar con Google | Credenciales OAuth de Google (ver más abajo) |
 | `GEMINI_API_KEY` | Para IA Pro | Tu clave de Gemini |
-| `AI_DAILY_LIMIT` | No | Generaciones de IA por cuenta y día (40 por defecto) |
+| `AI_DAILY_LIMIT` | No | Generaciones de IA por día para el plan **Pro** (40 por defecto) |
+| `AI_DAILY_LIMIT_CREADOR` | No | Generaciones de IA por día para el plan **Creador** (5 por defecto) |
+| `GEMINI_FALLBACK_MODEL` | No | Modelo de reserva si el principal se retira (`gemini-2.5-flash` por defecto) |
+| `FREE_PNG_PER_DAY`, `FREE_VIDEO_PER_DAY` | No | Descargas PNG (3) y vídeos (1) al día del plan gratis |
 | `PROMO_KEYS` | No | `CODIGO:pro:30,OTRO:creador:90` (plan y días de validez) |
 | `APP_URL` | No | Tu dominio propio si no usas el de Netlify |
 
@@ -78,16 +81,20 @@ no se verifican por email y **no se puede recuperar la contraseña** (el botón 
 
 | | Gratis | Creador (6,99 €) | Pro (14,99 €) |
 |---|---|---|---|
-| Mensajes por chat | 12 | 60 | 500 |
-| Captura PNG | estándar (1x) | 2K (2x) | 4K (3x) |
-| Marca de agua | Sí (diagonal, en todo el teléfono) | No | No |
-| Vídeo | completo, con marca de agua | + fondo croma/negro, formato vertical 9:16, modo "últimos 3 mensajes", sonidos | igual que Creador |
+| Mensajes por chat | 8 (solo texto y fechas) | 60 | 500 |
+| Plantillas | solo Instagram | Instagram, WhatsApp, iMessage | todas |
+| Imágenes y notas de voz en el chat | No | Sí | Sí |
+| Descargas PNG | 3 al día, calidad estándar (1x) | ilimitadas, 2K (2x) | ilimitadas, 4K (3x) |
+| Vídeo | 1 al día, con marca de agua | ilimitado + fondo croma/negro, vertical 9:16, "últimos 3 mensajes", sonidos | igual que Creador |
+| Marca de agua | Sí (3 marcas discretas y diagonales) | No | No |
 | Guardar / cargar proyecto (JSON) | No | Sí | Sí |
-| IA integrada | No (puede usar su propia clave de Gemini) | No | Sí, con límite diario |
+| IA integrada | No (puede usar su propia clave de Gemini) | 5 generaciones al día | 40 al día |
 
-Los límites están en `PLAN_LIMITS` (dentro de `index.html`, busca ese nombre) por si quieres ajustarlos.
-Se aplican en el navegador, así que una persona con conocimientos técnicos podría saltárselos;
-lo que protege el servidor es la cuenta, el pago y la IA.
+Las descargas del plan gratis se cuentan **en el servidor por cuenta y día**: borrar los datos del navegador no las devuelve.
+Quien no ha iniciado sesión también está limitado, pero su contador vive en el navegador (se puede saltar con modo incógnito).
+Los límites de mensajes, plantillas y tipos de mensaje están en `PLAN_LIMITS` (dentro de `index.html`); los de descargas e IA, en las
+variables de entorno de arriba. Lo que se aplica en el navegador (mensajes, plantillas, marca de agua, calidad) lo puede saltar alguien con
+conocimientos técnicos; lo que protege el servidor es la cuenta, el pago, la IA y el contador de descargas de las cuentas.
 
 ## Grabación de vídeo con fondo transparente
 
@@ -125,6 +132,6 @@ el navegador y las puede saltar alguien con conocimientos técnicos; el plan gra
 ## Probar en tu PC
 ```bash
 npm install
-npm test                 # 51 pruebas del backend (Stripe, Gemini, Google y email simulados)
+npm test                 # 57 pruebas del backend (Stripe, Gemini, Google y email simulados)
 node dev-server.mjs      # http://localhost:8888 con datos en memoria
 ```

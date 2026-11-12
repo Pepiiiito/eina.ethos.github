@@ -1,0 +1,8 @@
+# Ethos Chat Studio en Netlify
+[build]
+  command = "node build.mjs"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"

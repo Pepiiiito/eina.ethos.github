@@ -25,8 +25,12 @@ export const cfg = {
   geminiKey: env('GEMINI_API_KEY'),
   geminiModel: env('GEMINI_MODEL', 'gemini-3-flash-preview'),
   geminiBase: env('GEMINI_API_BASE', 'https://generativelanguage.googleapis.com'),
+  geminiFallback: env('GEMINI_FALLBACK_MODEL', 'gemini-2.5-flash'),
   geminiTimeoutMs: parseInt(env('GEMINI_TIMEOUT_MS'), 10) || 9000,
-  aiDailyLimit: parseInt(env('AI_DAILY_LIMIT'), 10) || 40,
+  aiDailyLimit: parseInt(env('AI_DAILY_LIMIT'), 10) || 40,                 // plan Pro
+  aiDailyLimitCreador: parseInt(env('AI_DAILY_LIMIT_CREADOR'), 10) || 5,   // plan Creador
+  freePngPerDay: parseInt(env('FREE_PNG_PER_DAY'), 10) || 3,               // plan gratis: descargas PNG al día
+  freeVideoPerDay: parseInt(env('FREE_VIDEO_PER_DAY'), 10) || 1,           // plan gratis: vídeos al día
   googleId: env('GOOGLE_CLIENT_ID'),
   googleSecret: env('GOOGLE_CLIENT_SECRET'),
   googleAuthUrl: env('GOOGLE_AUTH_URL', 'https://accounts.google.com/o/oauth2/v2/auth'),
@@ -39,6 +43,7 @@ export const cfg = {
     return { key, plan, days: parseInt(days, 10) || 30 };
   }).filter((p) => p.key && (p.plan === 'pro' || p.plan === 'creador')),
 };
+const aiLimitFor = (plan) => (plan === 'pro' ? cfg.aiDailyLimit : plan === 'creador' ? cfg.aiDailyLimitCreador : 0);
 const mailEnabled = () => !!(cfg.resendKey && cfg.mailFrom);
 const billingEnabled = () => !!cfg.stripeKey;
 const googleEnabled = () => !!(cfg.googleId && cfg.googleSecret);
@@ -278,24 +283,33 @@ Responde SOLO con JSON estricto y texto plano (sin HTML ni markdown) con este es
 }
 Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
 async function callGemini(idea) {
-  const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), cfg.geminiTimeoutMs);
-  try {
-    const res = await fetch(`${cfg.geminiBase}/v1beta/models/${encodeURIComponent(cfg.geminiModel)}:generateContent`, {
-      method: 'POST', signal: ctrl.signal,
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': cfg.geminiKey },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: `Crea un chat de drama viral sobre: "${idea}"` }] }],
-        systemInstruction: { parts: [{ text: AI_SYSTEM_PROMPT }] },
-        generationConfig: { responseMimeType: 'application/json' },
-      }),
-    });
-    if (!res.ok) throw err(502, 'La IA no respondió correctamente.');
-    const out = await res.json();
-    try { return JSON.parse(out?.candidates?.[0]?.content?.parts?.[0]?.text); } catch { throw err(502, 'Respuesta de la IA no válida.'); }
-  } catch (e) {
-    if (e.name === 'AbortError') throw err(504, 'La IA tardó demasiado. Inténtalo de nuevo.');
-    throw e;
-  } finally { clearTimeout(timer); }
+  const models = [cfg.geminiModel, cfg.geminiFallback].filter((m, i, arr) => m && arr.indexOf(m) === i);
+  let lastStatus = 0;
+  for (const model of models) {
+    const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), cfg.geminiTimeoutMs);
+    try {
+      const res = await fetch(`${cfg.geminiBase}/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+        method: 'POST', signal: ctrl.signal,
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': cfg.geminiKey },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: `Crea un chat de drama viral sobre: "${idea}"` }] }],
+          systemInstruction: { parts: [{ text: AI_SYSTEM_PROMPT }] },
+          generationConfig: { responseMimeType: 'application/json' },
+        }),
+      });
+      lastStatus = res.status;
+      if (!res.ok) {
+        if ([400, 404].includes(res.status) && model !== models[models.length - 1]) continue;   // modelo retirado o no disponible: se prueba el de reserva
+        throw err(502, 'La IA no respondió correctamente.');
+      }
+      const out = await res.json();
+      try { return JSON.parse(out?.candidates?.[0]?.content?.parts?.[0]?.text); } catch { throw err(502, 'Respuesta de la IA no válida.'); }
+    } catch (e) {
+      if (e.name === 'AbortError') throw err(504, 'La IA tardó demasiado. Inténtalo de nuevo.');
+      throw e;
+    } finally { clearTimeout(timer); }
+  }
+  throw err(502, 'La IA no respondió correctamente.');
 }
 
 // ===================== HTTP =====================
@@ -312,13 +326,24 @@ async function readJson(req, limit = 32 * 1024) {
   if (buf.byteLength > limit) throw err(413, 'Petición demasiado grande.');
   try { return JSON.parse(Buffer.from(buf).toString('utf8') || '{}'); } catch { throw err(400, 'JSON no válido.'); }
 }
-const features = () => ({ mail: mailEnabled(), billing: billingEnabled() && (cfg.pricesCreador.length > 0 || cfg.pricesPro.length > 0), ai: !!cfg.geminiKey, promo: cfg.promoKeys.length > 0, google: googleEnabled() });
+const features = () => ({ mail: mailEnabled(), billing: billingEnabled() && (cfg.pricesCreador.length > 0 || cfg.pricesPro.length > 0), ai: !!cfg.geminiKey, promo: cfg.promoKeys.length > 0, google: googleEnabled(), aiLimits: { creador: cfg.aiDailyLimitCreador, pro: cfg.aiDailyLimit }, freeLimits: { png: cfg.freePngPerDay, video: cfg.freeVideoPerDay } });
 const ipOf = (req, ctx) => (ctx && ctx.ip) || req.headers.get('x-nf-client-connection-ip') || 'unknown';
 
+function aiUsage(u, plan) {
+  const limit = aiLimitFor(plan), day = new Date().toISOString().slice(0, 10);
+  const used = u.ai && u.ai.day === day ? u.ai.n : 0;
+  return { limit, remaining: Math.max(0, limit - used) };
+}
+const FREE_KINDS = { png: () => cfg.freePngPerDay, video: () => cfg.freeVideoPerDay };
+function freeUsage(u, plan) {
+  if (plan !== 'free') return null;
+  const day = new Date().toISOString().slice(0, 10), used = u.usage && u.usage.day === day ? u.usage : { png: 0, video: 0 };
+  return { png: { limit: cfg.freePngPerDay, remaining: Math.max(0, cfg.freePngPerDay - (used.png || 0)) }, video: { limit: cfg.freeVideoPerDay, remaining: Math.max(0, cfg.freeVideoPerDay - (used.video || 0)) } };
+}
 async function meBody(u) {
   await refreshBilling(u);
   const e = effective(u);
-  return { user: publicUser(u), plan: e.plan, planSource: e.source, promoUntil: e.promoUntil, hasSubscription: !!(u.billing && u.billing.plan !== 'free'), hasPassword: !!u.passHash, google: !!u.googleSub, features: features() };
+  return { user: publicUser(u), plan: e.plan, ai: aiUsage(u, e.plan), usage: freeUsage(u, e.plan), planSource: e.source, promoUntil: e.promoUntil, hasSubscription: !!(u.billing && u.billing.plan !== 'free'), hasPassword: !!u.passHash, google: !!u.googleSub, features: features() };
 }
 
 // ===================== Rutas =====================
@@ -466,6 +491,25 @@ route('POST /api/billing/recover', async ({ user }) => {
   return { status: 200, body: { ...body, recovered: found }, headers: {} };
 }, true);
 
+// Descargas del plan gratis: se cuentan en el servidor (no se saltan borrando datos del navegador)
+route('POST /api/usage/consume', async ({ user, body }) => {
+  const kind = body.kind;
+  if (!FREE_KINDS[kind]) throw err(400, 'Tipo no válido.');
+  await refreshBilling(user);
+  const plan = effective(user).plan;
+  if (plan !== 'free') return { status: 200, body: { ok: true, unlimited: true }, headers: {} };
+  const day = new Date().toISOString().slice(0, 10), limit = FREE_KINDS[kind]();
+  if (!user.usage || user.usage.day !== day) user.usage = { day, png: 0, video: 0 };
+  if ((user.usage[kind] || 0) >= limit) {
+    throw err(429, kind === 'video'
+      ? `Plan gratis: ${limit} vídeo${limit > 1 ? 's' : ''} al día. Se renueva mañana, o suscríbete para vídeos ilimitados.`
+      : `Plan gratis: ${limit} descargas PNG al día. Se renuevan mañana, o suscríbete para descargas ilimitadas.`);
+  }
+  user.usage[kind] = (user.usage[kind] || 0) + 1;
+  await saveUser(user);
+  return { status: 200, body: { ok: true, usage: freeUsage(user, 'free') }, headers: {} };
+}, true);
+
 route('POST /api/billing/portal', async ({ req, user }) => {
   if (!user.stripeCustomerId) throw err(404, 'Todavía no tienes suscripción que gestionar.');
   const s = await stripe('POST', '/v1/billing_portal/sessions', { customer: user.stripeCustomerId, return_url: siteOf(req) });
@@ -549,15 +593,16 @@ route('GET /api/auth/google/callback', async ({ req, ctx, url }) => {
 route('POST /api/ai', async ({ user, body }) => {
   if (!cfg.geminiKey) throw err(503, 'La IA no está configurada en el servidor.');
   await refreshBilling(user);
-  if (effective(user).plan !== 'pro') throw err(403, 'La IA integrada requiere el plan Pro.');
+  const plan = effective(user).plan, limit = aiLimitFor(plan);
+  if (!limit) throw err(403, 'La IA integrada es de los planes Creador y Pro. Mientras tanto puedes usar tu propia API Key de Gemini.');
   const idea = typeof body.prompt === 'string' ? body.prompt.replace(/[\u0000-\u001f"]/g, ' ').trim() : '';
   if (idea.length < 8 || idea.length > 600) throw err(400, 'La idea debe tener entre 8 y 600 caracteres.');
   const day = new Date().toISOString().slice(0, 10);
   if (!user.ai || user.ai.day !== day) user.ai = { day, n: 0 };
-  if (user.ai.n >= cfg.aiDailyLimit) throw err(429, `Has alcanzado el límite diario de ${cfg.aiDailyLimit} generaciones.`);
+  if (user.ai.n >= limit) throw err(429, `Has usado tus ${limit} generaciones de IA de hoy. Se renuevan mañana (o usa tu propia API Key de Gemini).`);
   user.ai.n += 1;
   await saveUser(user);
-  return { status: 200, body: { data: await callGemini(idea), remaining: cfg.aiDailyLimit - user.ai.n }, headers: {} };
+  return { status: 200, body: { data: await callGemini(idea), remaining: limit - user.ai.n, limit }, headers: {} };
 }, true);
 
 route('GET /api/config', async () => ({ status: 200, body: { features: features() }, headers: {} }));

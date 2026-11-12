@@ -108,8 +108,8 @@
       z-index: 45;
       pointer-events: none;
       user-select: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27160%27%3E%3Cg font-family=%27Arial Black,Arial,Helvetica,sans-serif%27 font-weight=%27900%27 font-size=%2726%27 letter-spacing=%273%27 text-anchor=%27middle%27%3E%3Ctext transform=%27translate(50 46) rotate(-30)%27 fill=%27%23000%27 fill-opacity=%27.35%27 x=%271.5%27 y=%271.5%27%3EETHOS%3C/text%3E%3Ctext transform=%27translate(50 46) rotate(-30)%27 fill=%27%23fff%27 fill-opacity=%27.34%27%3EETHOS%3C/text%3E%3Ctext transform=%27translate(150 126) rotate(-30)%27 fill=%27%23000%27 fill-opacity=%27.35%27 x=%271.5%27 y=%271.5%27%3EETHOS%3C/text%3E%3Ctext transform=%27translate(150 126) rotate(-30)%27 fill=%27%23fff%27 fill-opacity=%27.34%27%3EETHOS%3C/text%3E%3C/g%3E%3C/svg%3E");
-      background-size: 200px 160px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27340%27 height=%27260%27%3E%3Cg font-family=%27Arial Black,Arial,Helvetica,sans-serif%27 font-weight=%27900%27 font-size=%2724%27 letter-spacing=%273%27 text-anchor=%27middle%27%3E%3Ctext transform=%27translate(170 130) rotate(-30)%27 fill=%27%23000%27 fill-opacity=%27.22%27 x=%271.5%27 y=%271.5%27%3EETHOS%3C/text%3E%3Ctext transform=%27translate(170 130) rotate(-30)%27 fill=%27%23fff%27 fill-opacity=%27.2%27%3EETHOS%3C/text%3E%3C/g%3E%3C/svg%3E");
+      background-size: 340px 260px;
       background-repeat: repeat;
     }
 
@@ -247,6 +247,7 @@
           <button id="btn-generate-ai" onclick="generateChatWithAI()" class="w-full py-2.5 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white rounded-xl text-xs font-extrabold transition shadow-lg shadow-red-600/30 flex items-center justify-center gap-2">
             <i class="fa-solid fa-sparkles"></i> Generar Chat Viral con IA
           </button>
+          <p id="ai-status" class="text-[10px] leading-snug text-neutral-400 text-center"></p>
         </div>
 
         <div id="panel-auto-script" class="hidden space-y-3">
@@ -859,11 +860,12 @@
             </div>
             <p class="text-[11px] text-neutral-400">Ideal para probar el creador de chats y guiones simples.</p>
             <ul class="space-y-2 text-xs text-neutral-300 pt-2 border-t border-neutral-800">
-              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Hasta 12 mensajes por chat</li>
-              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Captura PNG estándar (1x)</li>
-              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Vídeo básico (sin fondo transparente ni sonidos)</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Hasta 8 mensajes por chat (solo texto)</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> 3 descargas PNG al día (calidad estándar)</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> 1 vídeo al día (sin fondo transparente ni sonidos)</li>
               <li class="flex items-center gap-2 text-neutral-500"><i class="fa-solid fa-xmark text-rose-500 text-[10px]"></i> Marca de agua Ethos</li>
-              <li class="flex items-center gap-2 text-neutral-500"><i class="fa-solid fa-xmark text-rose-500 text-[10px]"></i> Sin IA Gemini automática</li>
+              <li class="flex items-center gap-2 text-neutral-500"><i class="fa-solid fa-xmark text-rose-500 text-[10px]"></i> Solo la plantilla de Instagram</li>
+              <li class="flex items-center gap-2 text-neutral-500"><i class="fa-solid fa-xmark text-rose-500 text-[10px]"></i> IA solo con tu propia API Key</li>
             </ul>
           </div>
           <button onclick="closePricingModal()" class="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold rounded-xl text-xs transition border border-neutral-700">
@@ -882,7 +884,10 @@
             <p class="text-[11px] text-neutral-400">Perfecto para creadores frecuentes de TikTok y YouTube Shorts.</p>
             <ul class="space-y-2 text-xs text-neutral-200 pt-2 border-t border-neutral-800">
               <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Sin marca de agua</li>
+              <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Descargas PNG y vídeos ilimitados</li>
+              <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Imágenes y notas de voz en los chats</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Vídeo con fondo transparente (croma/negro) + sonidos</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> IA Gemini integrada (<span id="ai-limit-creador">5</span> chats al día)</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Hasta 60 mensajes por chat · modo "últimos 3 mensajes"</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Exportación en calidad 2K</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-sky-400 text-[10px]"></i> Todas las plantillas (IG, WA, iOS)</li>
@@ -908,7 +913,7 @@
             </div>
             <p class="text-[11px] text-neutral-300">Potencia completa con IA Gemini integrada y máxima calidad Retina.</p>
             <ul class="space-y-2 text-xs text-neutral-100 pt-2 border-t border-red-900/60">
-              <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-sparkles text-amber-400 text-[10px]"></i> IA Gemini 3 ilimitada</li>
+              <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-sparkles text-amber-400 text-[10px]"></i> IA Gemini 3 (<span id="ai-limit-pro">40</span> chats al día)</li>
               <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-check text-red-500 text-[10px]"></i> Exportación 4K Ultra HD (3x)</li>
               <li class="flex items-center gap-2 font-bold text-white"><i class="fa-solid fa-check text-red-500 text-[10px]"></i> Hasta 500 mensajes por chat</li>
               <li class="flex items-center gap-2"><i class="fa-solid fa-check text-red-500 text-[10px]"></i> Guardado/Carga de JSON ilimitado</li>
@@ -1022,9 +1027,9 @@
 
     // ---- Límites por plan (se aplican en el navegador; ver nota en LEEME) ----
     const PLAN_LIMITS = {
-      free:    { maxMessages: 12,  exportScale: 1, videoKey: false, videoLast3: false, videoSound: false, videoVertical: false },
-      creador: { maxMessages: 60,  exportScale: 2, videoKey: true,  videoLast3: true,  videoSound: true,  videoVertical: true },
-      pro:     { maxMessages: 500, exportScale: 3, videoKey: true,  videoLast3: true,  videoSound: true,  videoVertical: true }
+      free:    { maxMessages: 8,   exportScale: 1, videoKey: false, videoLast3: false, videoSound: false, videoVertical: false, platforms: ['instagram'], msgTypes: ['text', 'divider'] },
+      creador: { maxMessages: 60,  exportScale: 2, videoKey: true,  videoLast3: true,  videoSound: true,  videoVertical: true,  platforms: PLATFORMS, msgTypes: ['text', 'divider', 'image', 'audio'] },
+      pro:     { maxMessages: 500, exportScale: 3, videoKey: true,  videoLast3: true,  videoSound: true,  videoVertical: true,  platforms: PLATFORMS, msgTypes: ['text', 'divider', 'image', 'audio'] }
     };
     function planLimits() { return PLAN_LIMITS[state.currentUser.plan] || PLAN_LIMITS.free; }
     function toastMessageLimit() {
@@ -1157,14 +1162,22 @@
           isLoggedIn: true, email: u.email, name: u.name || u.email.split('@')[0], emailVerified: !!u.emailVerified,
           plan: ['creador', 'pro'].includes(data.plan) ? data.plan : 'free',
           planSource: data.planSource || null, promoUntil: data.promoUntil || null, hasSubscription: !!data.hasSubscription,
-          hasPassword: data.hasPassword !== false, google: !!data.google
+          hasPassword: data.hasPassword !== false, google: !!data.google,
+          ai: data.ai || { limit: 0, remaining: 0 }, usage: data.usage || null
         };
       } else {
         state.currentUser = { isLoggedIn: false, email: '', name: 'Invitado', plan: 'free' };
       }
       if (data && data.features) backend.features = data.features;
+      const lim = backend.features.aiLimits;
+      if (lim) {
+        const c = document.getElementById('ai-limit-creador'), p2 = document.getElementById('ai-limit-pro');
+        if (c) c.textContent = lim.creador;
+        if (p2) p2.textContent = lim.pro;
+      }
       updateAuthUI();
       updatePlanUI();
+      updateAiStatus();
     }
 
     async function refreshMe() {
@@ -1551,7 +1564,7 @@
           statusPlanBadge.textContent = "Pro 💎";
           statusPlanBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-600 text-white border border-amber-400";
         }
-        if (statusPlanDesc) statusPlanDesc.textContent = "Suscripción activa: IA Gemini Ilimitada + Calidad 4K + Sin marcas de agua.";
+        if (statusPlanDesc) statusPlanDesc.textContent = "Suscripción activa: IA Gemini 3 + calidad 4K + sin marcas de agua.";
       } else if (plan === 'creador') {
         badge.textContent = "Creador 🚀";
         badge.className = "text-[10px] uppercase font-extrabold bg-sky-600 text-white border border-sky-400 px-2.5 py-0.5 rounded-full cursor-pointer";
@@ -1561,7 +1574,7 @@
           statusPlanBadge.textContent = "Creador 🚀";
           statusPlanBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-600 text-white border border-sky-400";
         }
-        if (statusPlanDesc) statusPlanDesc.textContent = "Suscripción activa: Vídeo HD Ilimitado + Sin marcas de agua.";
+        if (statusPlanDesc) statusPlanDesc.textContent = "Suscripción activa: vídeo con fondo transparente + IA integrada + sin marcas de agua.";
       } else {
         badge.textContent = "Gratis (€0)";
         badge.className = "text-[10px] uppercase font-extrabold bg-neutral-800 text-neutral-400 border border-neutral-700 px-2 py-0.5 rounded-full cursor-pointer hover:bg-neutral-700 transition";
@@ -1571,8 +1584,14 @@
           statusPlanBadge.textContent = "Gratis (€0)";
           statusPlanBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 border border-neutral-700";
         }
-        if (statusPlanDesc) statusPlanDesc.textContent = "Plan estándar activo. Desbloquea más resolución e IA suscribiéndote.";
+        if (statusPlanDesc) statusPlanDesc.textContent = 'Plan gratis: ' + freeLimitOf('png') + ' descargas PNG y ' + freeLimitOf('video') + ' vídeo al día, ' + PLAN_LIMITS.free.maxMessages + ' mensajes por chat y plantilla Instagram. Suscríbete para quitar los límites.';
       }
+
+      // Lo que el plan no incluye se bloquea (y si ya estaba en uso, vuelve a lo permitido)
+      if (!planLimits().platforms.includes(state.platform)) setPlatform('instagram', true);
+      if (!planLimits().msgTypes.includes(state.newMsgType)) setNewMsgType('text');
+      refreshLocks();
+      updateUsageUI();
     }
 
 
@@ -1700,26 +1719,39 @@ Responde SOLO con JSON estricto y texto plano (sin HTML ni markdown) con este es
 Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
 
     async function callGeminiDirect(idea, apiKey) {
-      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: 'Crea un chat de drama viral sobre: "' + idea.replace(/"/g, "'") + '"' }] }],
-          systemInstruction: { parts: [{ text: AI_SYSTEM_PROMPT }] },
-          generationConfig: { responseMimeType: 'application/json' }
-        })
-      });
-      if (!res.ok) throw new Error('Gemini rechazó la petición. Revisa tu API Key.');
-      const result = await res.json();
-      const raw = result && result.candidates && result.candidates[0] && result.candidates[0].content.parts[0].text;
-      try { return JSON.parse(raw); } catch (e) { throw new Error('Respuesta de la IA no válida'); }
+      const models = ['gemini-3-flash-preview', 'gemini-2.5-flash'];   // si el primero se retira, se prueba el siguiente
+      let lastMsg = '';
+      for (let i = 0; i < models.length; i++) {
+        const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + models[i] + ':generateContent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: 'Crea un chat de drama viral sobre: "' + idea.replace(/"/g, "'") + '"' }] }],
+            systemInstruction: { parts: [{ text: AI_SYSTEM_PROMPT }] },
+            generationConfig: { responseMimeType: 'application/json' }
+          })
+        });
+        if (res.ok) {
+          const result = await res.json();
+          const raw = result && result.candidates && result.candidates[0] && result.candidates[0].content.parts[0].text;
+          try { return JSON.parse(raw); } catch (e) { throw new Error('Respuesta de la IA no válida'); }
+        }
+        let detail = '';
+        try { const j = await res.json(); detail = (j && j.error && j.error.message) || ''; } catch (e) {}
+        lastMsg = detail;
+        if (/api key/i.test(detail)) throw new Error('Tu API Key de Gemini no es válida. Revísala y vuelve a guardarla.');
+        if (res.status === 429) throw new Error('Has superado el límite de uso de tu clave de Gemini. Espera un momento e inténtalo de nuevo.');
+        if (![400, 404].includes(res.status) || i === models.length - 1) break;
+      }
+      throw new Error('Gemini no pudo generar el chat' + (lastMsg ? ': ' + lastMsg.slice(0, 120) : '. Revisa tu API Key.'));
     }
 
     function applyGeneratedChat(data) {
       if (!data || typeof data !== 'object') throw new Error('Respuesta de la IA no válida');
       let msgs = (Array.isArray(data.messages) ? data.messages : []).slice(0, LIMITS.msgs).map(sanitizeMessage).filter(Boolean);
       if (!msgs.length) throw new Error('La IA no devolvió mensajes válidos');
+      msgs = msgs.filter(m => planLimits().msgTypes.includes(m.type));
+      if (!msgs.length) throw new Error('La IA no devolvió mensajes válidos para tu plan');
       if (msgs.length > planLimits().maxMessages) { msgs = msgs.slice(0, planLimits().maxMessages); showToast('Plan ' + state.currentUser.plan + ': se han recortado los mensajes a ' + planLimits().maxMessages + '.', true); }
       const name = cleanStr(data.profileName, 60);
       const status = cleanStr(data.status, 60);
@@ -1735,20 +1767,25 @@ Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
     async function generateChatWithAI() {
       const idea = document.getElementById('input-ai-prompt').value.trim();
       const apiKey = document.getElementById('input-user-api-key').value.trim() || lsGet('ethos_gemini_api_key') || '';
-      const isPro = !!(state.currentUser.isLoggedIn && state.currentUser.plan === 'pro');
-      const useServer = isPro && backend.available && backend.features.ai;
+      const u = state.currentUser;
+      const paid = !!(u.isLoggedIn && (u.plan === 'creador' || u.plan === 'pro'));
+      const serverOk = paid && backend.available && backend.features.ai;
+      const quotaLeft = !u.ai || u.ai.remaining > 0;
+      const useServer = serverOk && (quotaLeft || !apiKey);   // sin cupo pero con clave propia, se usa la clave propia
 
       if (!idea) { showToast('Escribe una idea dramática para la IA', true); return; }
       if (idea.length > 600) { showToast('La idea es demasiado larga (máximo 600 caracteres)', true); return; }
       if (!useServer && !apiKey) {
-        if (isPro) {
-          showToast('La IA integrada no está disponible ahora. Puedes usar tu propia API Key.', true);
-        } else if (!state.currentUser.isLoggedIn) {
-          showToast('Inicia sesión con tu cuenta Pro, o usa tu propia API Key de Gemini.', true);
+        if (!u.isLoggedIn) {
+          showToast('Inicia sesión con tu plan Creador o Pro para usar la IA, o añade tu propia API Key de Gemini.', true);
           openAuthModal('login');
-        } else {
-          showToast('La IA requiere Plan Pro (€14,99) o tu API Key personal.', true);
+        } else if (!paid) {
+          showToast('La IA integrada es de los planes Creador y Pro. También puedes usar tu propia API Key de Gemini.', true);
           openPricingModal();
+        } else if (!serverOk) {
+          showToast('La IA integrada no está disponible ahora. Puedes usar tu propia API Key de Gemini.', true);
+        } else {
+          showToast('Has usado tus ' + u.ai.limit + ' generaciones de hoy. Se renuevan mañana, o usa tu propia API Key.', true);
         }
         return;
       }
@@ -1762,8 +1799,9 @@ Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
         if (useServer) {
           const r = await apiCall('/api/ai', { body: { prompt: idea } });
           if (r.status === 401) { applyMe(null); throw new Error('Tu sesión ha caducado. Vuelve a iniciar sesión.'); }
-          if (!r.ok) throw new Error((r.data && r.data.error) || 'No se pudo generar el chat');
+          if (!r.ok) { if (r.status === 429 || r.status === 403) await refreshMe(); throw new Error(apiError(r, 'No se pudo generar el chat')); }
           data = r.data.data;
+          if (typeof r.data.remaining === 'number') { state.currentUser.ai = { limit: r.data.limit, remaining: r.data.remaining }; updateAiStatus(); }
         } else {
           data = await callGeminiDirect(idea, apiKey);
         }
@@ -1776,6 +1814,85 @@ Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
         btn.disabled = false;
         btn.replaceChildren(mk('i', 'fa-solid fa-sparkles'), document.createTextNode(' Generar Chat Viral con IA'));
       }
+    }
+
+    // ---------- Descargas del plan gratis (PNG y vídeo por día) ----------
+    const FREE_DEFAULTS = { png: 3, video: 1 };
+    function freeLimitOf(kind) { const f = backend.features.freeLimits; return (f && f[kind]) || FREE_DEFAULTS[kind]; }
+    function localDayKey() { return 'ethos_usage_' + new Date().toISOString().slice(0, 10); }
+    function localUsage() { try { return JSON.parse(localStorage.getItem(localDayKey()) || '{}'); } catch (e) { return {}; } }
+    function saveLocalUsage(o) {
+      try {
+        const key = localDayKey();
+        for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (k && k.indexOf('ethos_usage_') === 0 && k !== key) localStorage.removeItem(k); }
+        localStorage.setItem(key, JSON.stringify(o));
+      } catch (e) {}
+    }
+    function usageRemaining(kind) {
+      const u = state.currentUser;
+      if (u.plan !== 'free') return Infinity;
+      if (u.isLoggedIn && u.usage && u.usage[kind]) return u.usage[kind].remaining;
+      return Math.max(0, freeLimitOf(kind) - (localUsage()[kind] || 0));
+    }
+    function usageLimitMessage(kind) {
+      const n = freeLimitOf(kind);
+      return kind === 'video'
+        ? 'Plan gratis: ' + n + ' vídeo' + (n > 1 ? 's' : '') + ' al día. Se renueva mañana, o suscríbete para vídeos ilimitados.'
+        : 'Plan gratis: ' + n + ' descargas PNG al día. Se renuevan mañana, o suscríbete para descargas ilimitadas.';
+    }
+    // Gasta una descarga del día. Con cuenta cuenta el servidor; sin cuenta, el navegador.
+    async function consumeUsage(kind) {
+      const u = state.currentUser;
+      if (u.plan !== 'free') return true;
+      if (u.isLoggedIn && backend.available) {
+        const r = await apiCall('/api/usage/consume', { body: { kind: kind } });
+        if (r.ok) { if (r.data && r.data.usage) state.currentUser.usage = r.data.usage; updateUsageUI(); return true; }
+        if (r.status === 429) { showToast(apiError(r, usageLimitMessage(kind)), true); await refreshMe(); openPricingModal(); return false; }
+        if (r.status === 401) { applyMe(null); }
+        // otro error del servidor: se usa el contador del navegador
+      }
+      const used = localUsage();
+      if ((used[kind] || 0) >= freeLimitOf(kind)) {
+        showToast(usageLimitMessage(kind) + (state.currentUser.isLoggedIn ? '' : ' Con una cuenta el contador es más fiable.'), true);
+        updateUsageUI();
+        openPricingModal();
+        return false;
+      }
+      used[kind] = (used[kind] || 0) + 1;
+      saveLocalUsage(used);
+      updateUsageUI();
+      return true;
+    }
+    function updateUsageUI() {
+      const u = state.currentUser;
+      const exp = document.getElementById('btn-export-text');
+      const rec = document.getElementById('record-btn-text');
+      const recording = rec && /Grabando/.test(rec.textContent);
+      if (u.plan === 'free') {
+        if (exp) exp.textContent = 'Descargar PNG · ' + usageRemaining('png') + ' hoy';
+        if (rec && !recording) rec.textContent = '🎥 Grabar Vídeo · ' + usageRemaining('video') + ' hoy';
+      } else if (rec && !recording) {
+        rec.textContent = '🎥 Grabar Vídeo';
+      }
+    }
+
+    // Texto bajo el botón: qué IA tienes y cuánto te queda hoy
+    function updateAiStatus() {
+      const el = document.getElementById('ai-status');
+      if (!el) return;
+      const u = state.currentUser;
+      const hasKey = !!((document.getElementById('input-user-api-key') || {}).value || lsGet('ethos_gemini_api_key'));
+      let txt, ok = false;
+      if (u.isLoggedIn && (u.plan === 'creador' || u.plan === 'pro')) {
+        if (backend.available && !backend.features.ai) txt = 'La IA integrada no está configurada en el servidor.' + (hasKey ? ' Se usará tu API Key.' : ' Usa tu propia API Key.');
+        else { ok = true; txt = '✨ IA integrada incluida en tu plan: te quedan ' + (u.ai ? u.ai.remaining : '–') + ' de ' + (u.ai ? u.ai.limit : '–') + ' generaciones hoy.'; }
+      } else if (u.isLoggedIn) {
+        txt = 'Plan gratis: la IA integrada es de los planes Creador y Pro. Puedes usar tu propia API Key de Gemini.';
+      } else {
+        txt = 'Inicia sesión con tu plan Creador o Pro para usar la IA, o usa tu propia API Key de Gemini.';
+      }
+      el.textContent = txt;
+      el.className = 'text-[10px] leading-snug text-center ' + (ok ? 'text-emerald-400' : 'text-neutral-400');
     }
 
     // MOTOR DE ANIMACIÓN
@@ -1922,6 +2039,12 @@ Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
       const bg = lim.videoKey ? document.getElementById('rec-bg').value : 'asis';
       const sound = lim.videoSound ? document.getElementById('rec-sound').checked : false;
       const format = lim.videoVertical ? document.getElementById('rec-format').value : 'native';
+      if (state.currentUser.plan === 'free' && usageRemaining('video') <= 0) {
+        closeVideoRecordModal();
+        showToast(usageLimitMessage('video'), true);
+        openPricingModal();
+        return;
+      }
       closeVideoRecordModal();
       startVideoRecordingProcess(mode, bg, sound, format);
     }
@@ -2070,6 +2193,7 @@ Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
       let displayStream = null;
       let videoElement = null;
       let layoutApplied = false;
+      let quotaDenied = false;
       let audioCtx = null, audioDest = null;
       if (withSound) {
         try {
@@ -2093,6 +2217,7 @@ Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
         stopAnimation();
         renderMessages();
         btnText.textContent = "🎥 Grabar Vídeo";
+        updateUsageUI();
       };
 
       try {
@@ -2106,6 +2231,9 @@ Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
           audio: false,
           preferCurrentTab: true
         });
+
+        // El vídeo se cuenta cuando la captura ya está concedida (si cancelas el permiso no se gasta)
+        if (!(await consumeUsage('video'))) { quotaDenied = true; throw new Error('cuota'); }
 
         btnText.textContent = "🔴 Grabando...";
 
@@ -2279,9 +2407,9 @@ Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
         stopTimer = setTimeout(finishRecording, totalDurationMs);
 
       } catch (err) {
-        console.error("Error durante la grabación:", err);
+        if (!quotaDenied) console.error("Error durante la grabación:", err);
         cleanup();
-        showToast('Grabación cancelada o sin permisos.', true);
+        if (!quotaDenied) showToast('Grabación cancelada o sin permisos.', true);
       }
     }
 
@@ -2552,6 +2680,27 @@ Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
       body.style.backgroundSize = th.wallpaper === 'none' ? '' : '22px 22px';
     }
 
+    // Marca con candado lo que el plan actual no incluye
+    function refreshLocks() {
+      const lim = planLimits();
+      PLATFORMS.forEach(pl => {
+        const btn = document.getElementById('btn-platform-' + pl);
+        if (!btn) return;
+        const locked = !lim.platforms.includes(pl);
+        btn.classList.toggle('opacity-60', locked);
+        btn.title = locked ? 'Disponible en los planes Creador y Pro' : '';
+        const old = btn.querySelector('.lock-badge'); if (old) old.remove();
+        if (locked) { const b = document.createElement('span'); b.className = 'lock-badge text-[9px]'; b.textContent = '🔒'; btn.appendChild(b); }
+      });
+      ['image', 'audio'].forEach(t => {
+        const btn = document.getElementById('btn-type-' + t);
+        if (!btn) return;
+        const locked = !lim.msgTypes.includes(t);
+        btn.classList.toggle('opacity-60', locked);
+        btn.title = locked ? 'Disponible en los planes Creador y Pro' : '';
+      });
+    }
+
     function refreshPlatformButtons() {
       PLATFORMS.forEach(pl => {
         const btn = document.getElementById('btn-platform-' + pl);
@@ -2561,8 +2710,14 @@ Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
       if (active) active.className = "platform-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-red-600 bg-red-600/10 text-white font-semibold text-[11px] transition";
     }
 
-    function setPlatform(plat) {
+    const PLATFORM_NAMES = { instagram: 'Instagram', whatsapp: 'WhatsApp', imessage: 'iMessage' };
+    function setPlatform(plat, force) {
       if (!PLATFORMS.includes(plat)) return;
+      if (!force && !planLimits().platforms.includes(plat)) {
+        showToast('La plantilla de ' + PLATFORM_NAMES[plat] + ' es de los planes Creador y Pro.', true);
+        openPricingModal();
+        return;
+      }
       state.platform = plat;
       refreshPlatformButtons();
 
@@ -2847,6 +3002,11 @@ Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
     }
 
     function setNewMsgType(type) {
+      if (!planLimits().msgTypes.includes(type)) {
+        showToast('Los mensajes de ' + (type === 'image' ? 'imagen' : 'nota de voz') + ' son de los planes Creador y Pro.', true);
+        openPricingModal();
+        return;
+      }
       state.newMsgType = type;
       ['text', 'audio', 'image', 'divider'].forEach(t => {
         const btn = document.getElementById(`btn-type-${t}`);
@@ -3047,7 +3207,8 @@ Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
       reader.readAsText(file);
     }
 
-    function exportChatImage() {
+    async function exportChatImage() {
+      if (!(await consumeUsage('png'))) return;
       const targetNode = document.getElementById('phone-frame');
       const originalZoom = state.zoom;
       state.zoom = 1.0;
@@ -3073,7 +3234,8 @@ Entre 8 y 20 mensajes. El campo "sender" es "me" o "them".`;
       });
     }
 
-    function copyChatImage() {
+    async function copyChatImage() {
+      if (!(await consumeUsage('png'))) return;
       const targetNode = document.getElementById('phone-frame');
       showToast('Copiando captura...');
       html2canvas(targetNode, { scale: planLimits().exportScale, useCORS: true }).then(canvas => {

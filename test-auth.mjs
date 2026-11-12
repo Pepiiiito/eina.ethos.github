@@ -21,7 +21,7 @@ const stripe = http.createServer(async (req, res) => {
   json(res, { error: { message: 'nf' } }, 404);
 });
 const resend = http.createServer(async (req, res) => { M.mails.push(JSON.parse(await body(req))); json(res, { id: 'm' }); });
-const gemini = http.createServer((req, res) => { M.geminiKey = req.headers['x-goog-api-key']; json(res, { candidates: [{ content: { parts: [{ text: JSON.stringify({ profileName: 'T', messages: [{ type: 'text', sender: 'them', text: 'hola' }] }) }] } }] }); });
+const gemini = http.createServer((req, res) => { M.geminiKey = req.headers['x-goog-api-key']; (M.geminiPaths ||= []).push(req.url); if (req.url.includes('modelo-viejo')) return json(res, { error: { message: 'model not found' } }, 404); json(res, { candidates: [{ content: { parts: [{ text: JSON.stringify({ profileName: 'T', messages: [{ type: 'text', sender: 'them', text: 'hola' }] }) }] } }] }); });
 const G = { claims: null, last: null, fail: false };
 const googleTok = http.createServer(async (req, res) => {
   const form = new URLSearchParams(await body(req)); G.last = Object.fromEntries(form);
@@ -34,7 +34,7 @@ await listen(stripe, 3401); await listen(resend, 3402); await listen(gemini, 340
 Object.assign(process.env, {
   AUTH_SECRET: 'k'.repeat(40), APP_URL: 'https://mi-sitio.netlify.app', STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_API_BASE: 'http://127.0.0.1:3401',
   PRICE_IDS_PRO: 'price_pro', PRICE_IDS_CREADOR: 'price_cr', STRIPE_WEBHOOK_SECRET: 'whsec_t', GEMINI_API_KEY: 'gem_secret', GEMINI_API_BASE: 'http://127.0.0.1:3403',
-  AI_DAILY_LIMIT: '2', RESEND_API_KEY: 're_x', MAIL_FROM: 'Ethos <no-reply@x.com>', MAIL_API_BASE: 'http://127.0.0.1:3402', PROMO_KEYS: 'VIP-1:pro:30',
+  AI_DAILY_LIMIT: '2', AI_DAILY_LIMIT_CREADOR: '1', FREE_PNG_PER_DAY: '2', FREE_VIDEO_PER_DAY: '1', RESEND_API_KEY: 're_x', MAIL_FROM: 'Ethos <no-reply@x.com>', MAIL_API_BASE: 'http://127.0.0.1:3402', PROMO_KEYS: 'VIP-1:pro:30',
   GOOGLE_CLIENT_ID: 'gid.apps.googleusercontent.com', GOOGLE_CLIENT_SECRET: 'gsecret', GOOGLE_TOKEN_URL: 'http://127.0.0.1:3404/token', GOOGLE_AUTH_URL: 'https://accounts.google.com/o/oauth2/v2/auth',
 });
 const api = await import('./api.mjs');
@@ -59,7 +59,7 @@ const tokenFrom = (re) => { const m = M.mails.map((x) => x.html).reverse().map((
 const results = []; const test = async (n, f) => { try { await f(); results.push([1, n]); } catch (e) { results.push([0, n + ' → ' + e.message]); } };
 const PW = 'Clave-Segura-2026';
 
-await test('config pública', async () => assert.deepStrictEqual((await call('GET', '/api/config')).json.features, { mail: true, billing: true, ai: true, promo: true, google: true }));
+await test('config pública', async () => assert.deepStrictEqual((await call('GET', '/api/config')).json.features, { mail: true, billing: true, ai: true, promo: true, google: true, aiLimits: { creador: 1, pro: 2 }, freeLimits: { png: 2, video: 1 } }));
 await test('me sin sesión: user null', async () => { const r = await call('GET', '/api/auth/me'); assert.strictEqual(r.status, 200); assert.strictEqual(r.json.user, null); });
 await test('registro: validaciones (email, contraseña corta/débil)', async () => {
   assert.strictEqual((await call('POST', '/api/auth/register', { body: { email: 'mal', password: PW } })).status, 400);
@@ -316,6 +316,52 @@ await test('recuperar: botón manual — sin compra da un mensaje claro; con com
   assert.strictEqual(ok.status, 200); assert.strictEqual(ok.json.recovered, true); assert.strictEqual(ok.json.plan, 'pro');
 });
 await test('recuperar: requiere sesión', async () => assert.strictEqual((await call('POST', '/api/billing/recover', { body: {}, client: 'nobody2' })).status, 401));
+
+
+// ================= IA para Creador y Pro =================
+await test('IA: el plan Creador también la tiene, con su propio límite diario; /me muestra lo que queda', async () => {
+  const me0 = (await call('GET', '/api/auth/me', { client: 'r1' })).json;
+  assert.strictEqual(me0.plan, 'creador'); assert.deepStrictEqual(me0.ai, { limit: 1, remaining: 1 });
+  const a = await call('POST', '/api/ai', { client: 'r1', body: { prompt: 'una historia de traición' } });
+  assert.strictEqual(a.status, 200); assert.strictEqual(a.json.remaining, 0); assert.strictEqual(a.json.limit, 1);
+  const b = await call('POST', '/api/ai', { client: 'r1', body: { prompt: 'una historia de traición' } });
+  assert.strictEqual(b.status, 429);
+  assert.deepStrictEqual((await call('GET', '/api/auth/me', { client: 'r1' })).json.ai, { limit: 1, remaining: 0 });
+});
+await test('IA: el plan gratis no la tiene y el mensaje lo explica (y ofrece la clave propia)', async () => {
+  const r = await call('POST', '/api/ai', { client: 'r2', body: { prompt: 'una historia de traición' } });
+  assert.strictEqual(r.status, 403); assert.ok(r.json.error.includes('Creador y Pro') && r.json.error.includes('API Key'));
+  assert.deepStrictEqual((await call('GET', '/api/auth/me', { client: 'r2' })).json.ai, { limit: 0, remaining: 0 });
+});
+await test('IA: si el modelo principal está retirado se usa el de reserva', async () => {
+  const keep = api.cfg.geminiModel; api.cfg.geminiModel = 'modelo-viejo'; M.geminiPaths = [];
+  const r = await call('POST', '/api/ai', { client: 'r3', body: { prompt: 'una historia de traición' } });
+  api.cfg.geminiModel = keep;
+  assert.strictEqual(r.status, 200); assert.ok(M.geminiPaths[0].includes('modelo-viejo') && M.geminiPaths[1].includes('gemini-2.5-flash'), JSON.stringify(M.geminiPaths));
+});
+
+
+// ================= Descargas del plan gratis =================
+await test('descargas gratis: el servidor cuenta PNG y vídeo por cuenta y día, y /me muestra lo que queda', async () => {
+  const me0 = (await call('GET', '/api/auth/me', { client: 'r2' })).json;
+  assert.deepStrictEqual(me0.usage, { png: { limit: 2, remaining: 2 }, video: { limit: 1, remaining: 1 } });
+  assert.strictEqual((await call('POST', '/api/usage/consume', { client: 'r2', body: { kind: 'png' } })).status, 200);
+  assert.strictEqual((await call('POST', '/api/usage/consume', { client: 'r2', body: { kind: 'png' } })).status, 200);
+  const third = await call('POST', '/api/usage/consume', { client: 'r2', body: { kind: 'png' } });
+  assert.strictEqual(third.status, 429); assert.ok(third.json.error.includes('2 descargas PNG'));
+  assert.strictEqual((await call('POST', '/api/usage/consume', { client: 'r2', body: { kind: 'video' } })).status, 200);
+  assert.strictEqual((await call('POST', '/api/usage/consume', { client: 'r2', body: { kind: 'video' } })).status, 429);
+  assert.deepStrictEqual((await call('GET', '/api/auth/me', { client: 'r2' })).json.usage, { png: { limit: 2, remaining: 0 }, video: { limit: 1, remaining: 0 } });
+});
+await test('descargas: los planes de pago no tienen límite y no se les cuenta', async () => {
+  const r = await call('POST', '/api/usage/consume', { client: 'r1', body: { kind: 'png' } });
+  assert.strictEqual(r.status, 200); assert.strictEqual(r.json.unlimited, true);
+  assert.strictEqual((await call('GET', '/api/auth/me', { client: 'r1' })).json.usage, null);
+});
+await test('descargas: tipo inválido → 400; sin sesión → 401', async () => {
+  assert.strictEqual((await call('POST', '/api/usage/consume', { client: 'r2', body: { kind: 'zip' } })).status, 400);
+  assert.strictEqual((await call('POST', '/api/usage/consume', { client: 'nobody3', body: { kind: 'png' } })).status, 401);
+});
 
 await test('cuerpo enorme → 413 y ruta desconocida → 404', async () => {
   assert.strictEqual((await call('POST', '/api/auth/login', { body: JSON.stringify({ email: 'a@b.com', password: 'a'.repeat(100000) }), client: 'l' })).status, 413);
